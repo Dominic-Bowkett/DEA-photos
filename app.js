@@ -1130,11 +1130,16 @@
 
   function makeNewProperty(name) {
     const id = uid("prop");
+    // Carry the assessor name over from whatever property is currently
+    // loaded — assessors usually run several properties in one sitting,
+    // so re-typing the same name on every new entry is busywork.
+    const carryAssessor =
+      (state.property && state.property.meta && state.property.meta.assessor) || "";
     const property = {
       id,
       name: name || `Property ${state.properties.length + 1}`,
       meta: {
-        assessor: "",
+        assessor: carryAssessor,
         address: "",
         ref: "",
         date: todayISO(),
@@ -1611,6 +1616,46 @@
     if (!els.metaCard || !els.metaHeader) return;
     els.metaCard.classList.toggle("collapsed", collapsed);
     els.metaHeader.setAttribute("aria-expanded", String(!collapsed));
+  }
+
+  // Auto-collapse the Job details card the first time all three
+  // required fields (address, assessor, date) are filled in. We
+  // only do it once per property — autoCollapsedDone latches so we
+  // don't fight the user if they re-expand and edit later. The
+  // collapse is debounced so we don't snap shut mid-typing.
+  let pendingMetaCollapse = null;
+  function maybeAutoCollapseMeta() {
+    if (!state.property) return;
+    const meta = state.property.meta;
+    if (meta.autoCollapsedDone) return;
+    const isComplete = () => {
+      const m = state.property && state.property.meta;
+      if (!m) return false;
+      return (
+        (state.property.name || "").trim() &&
+        (m.assessor || "").trim() &&
+        (m.date || "").trim()
+      );
+    };
+    if (!isComplete()) {
+      if (pendingMetaCollapse) {
+        clearTimeout(pendingMetaCollapse);
+        pendingMetaCollapse = null;
+      }
+      return;
+    }
+    if (pendingMetaCollapse) clearTimeout(pendingMetaCollapse);
+    pendingMetaCollapse = setTimeout(() => {
+      pendingMetaCollapse = null;
+      if (!state.property) return;
+      const m = state.property.meta;
+      if (m.autoCollapsedDone) return;
+      if (!isComplete()) return;
+      m.autoCollapsedDone = true;
+      m.collapsed = true;
+      applyMetaCollapsed(true);
+      saveProperty();
+    }, 600);
   }
 
   function toggleMetaCollapsed() {
@@ -7276,6 +7321,7 @@ ${nojsFallback}
     const nameHandler = () => {
       state.property.name = els.metaName.value.trim() || "Untitled property";
       saveProperty();
+      maybeAutoCollapseMeta();
     };
     els.metaName.addEventListener("input", nameHandler);
     const handler = () => {
@@ -7284,6 +7330,7 @@ ${nojsFallback}
       if (els.metaRef) state.property.meta.ref = els.metaRef.value.trim();
       state.property.meta.date = els.metaDate.value;
       saveProperty();
+      maybeAutoCollapseMeta();
     };
     els.metaAssessor.addEventListener("input", handler);
     if (els.metaAddress) els.metaAddress.addEventListener("input", handler);
