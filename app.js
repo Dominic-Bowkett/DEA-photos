@@ -4040,6 +4040,14 @@
     }
     camera.buffer = [];
     camera.selectedGroupIds = new Set();
+    // The top Capture card's chip selection is per-batch — clear it
+    // once the camera closes so the next session starts fresh
+    // (defaults back to Untagged).
+    if (camera.hudTagPicker) {
+      state.captureSelectedGroupIds.clear();
+      renderCaptureCard();
+    }
+    camera.hudTagPicker = false;
     renderCameraBuffer();
     updateCameraCount();
   }
