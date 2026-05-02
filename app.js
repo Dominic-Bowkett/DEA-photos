@@ -466,7 +466,7 @@
     addRoomBtn: document.getElementById("btn-add-room"),
     windows: document.getElementById("windows"),
     addWindowPropertyBtn: document.getElementById("btn-add-window-property"),
-    captureTags: document.getElementById("capture-tags"),
+    captureTag: document.getElementById("capture-tag"),
     captureTakeBtn: document.getElementById("btn-capture-take"),
     captureUpload: document.getElementById("capture-upload"),
     groupTpl: document.getElementById("group-template"),
@@ -537,7 +537,7 @@
     lightboxLabel: document.getElementById("lightbox-label"),
     lightboxLabelAi: document.getElementById("lightbox-label-ai"),
     lightboxBuilding: document.getElementById("lightbox-building"),
-    lightboxTags: document.getElementById("lightbox-tags"),
+    lightboxTag: document.getElementById("lightbox-tag"),
     lightboxDefect: document.getElementById("lightbox-defect"),
     lightboxDelete: document.getElementById("lightbox-delete"),
     toast: document.getElementById("toast"),
@@ -3288,40 +3288,23 @@
     els.lightboxFilter.value = lightbox.sourceId;
   }
 
-  // Render the lightbox's tag-chip strip for the given photo. Each chip
-  // is a toggle for one top-level group; pressing one adds or removes
-  // the photo from that group's photoIds. The Untagged group is auto-
-  // managed (not shown as a chip) — see syncUntaggedMembership.
-  function renderLightboxTagChips(photo) {
-    if (!els.lightboxTags) return;
-    els.lightboxTags.innerHTML = "";
-    if (!photo || !state.property) return;
-    const groups = state.property.groups || [];
+  // Populate the lightbox's tag <select> with the property's groups.
+  // Re-runs every time the lightbox opens so the option list tracks
+  // the current property's groups.
+  function populateLightboxTagOptions() {
+    if (!els.lightboxTag) return;
+    els.lightboxTag.innerHTML = "";
+    const groups = (state.property && state.property.groups) || [];
     for (const g of groups) {
-      if ((g.name || "").trim().toLowerCase() === "untagged") continue;
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "lightbox-tag-chip";
-      chip.dataset.groupId = g.id;
-      chip.textContent = g.name;
-      const on = (g.photoIds || []).includes(photo.id);
-      chip.setAttribute("aria-pressed", String(on));
-      chip.classList.toggle("is-on", on);
-      els.lightboxTags.appendChild(chip);
+      const opt = document.createElement("option");
+      opt.value = g.id;
+      opt.textContent = g.name;
+      els.lightboxTag.appendChild(opt);
     }
   }
 
-  // Find every top-level group that contains this photo.
-  function groupsContainingPhoto(photoId) {
-    if (!state.property) return [];
-    return (state.property.groups || []).filter(
-      (g) => (g.photoIds || []).includes(photoId)
-    );
-  }
-
-  // Find which top-level group "owns" a photo. Returns the first group
-  // that contains it; for photos in multiple groups the order in
-  // state.property.groups decides. Rooms are searched as a fallback.
+  // Find which top-level group currently owns a photo (by photoIds).
+  // Rooms are searched as a fallback.
   function findOwningGroup(photoId) {
     if (!state.property) return null;
     for (const g of state.property.groups || []) {
@@ -3333,41 +3316,22 @@
     return null;
   }
 
-  // Toggle a photo's membership in a top-level group. Returns the new
-  // state (true = now in the group). Auto-syncs the Untagged group.
-  function togglePhotoInGroup(photoId, groupId) {
+  // Move a photo between top-level groups. No-op if it's already in
+  // the destination. Returns true if the photo moved.
+  function movePhotoBetweenGroups(photoId, targetGroupId) {
     if (!state.property) return false;
-    const group = (state.property.groups || []).find((g) => g.id === groupId);
-    if (!group) return false;
-    const i = (group.photoIds || []).indexOf(photoId);
-    if (i !== -1) {
-      group.photoIds.splice(i, 1);
-    } else {
-      if (!Array.isArray(group.photoIds)) group.photoIds = [];
-      group.photoIds.push(photoId);
+    const groups = state.property.groups || [];
+    const target = groups.find((g) => g.id === targetGroupId);
+    if (!target) return false;
+    const owner = findOwningGroup(photoId);
+    if (owner === target) return false;
+    if (owner && Array.isArray(owner.photoIds)) {
+      const i = owner.photoIds.indexOf(photoId);
+      if (i !== -1) owner.photoIds.splice(i, 1);
     }
-    syncUntaggedMembership(photoId);
-    return i === -1;
-  }
-
-  // Untagged is automatically populated when a photo has no other
-  // group memberships, and emptied when it has any. The Untagged chip
-  // itself is hidden in the lightbox UI; this keeps the data store in
-  // sync after every toggle.
-  function syncUntaggedMembership(photoId) {
-    const untagged = findUntaggedGroup();
-    if (!untagged) return;
-    if (!Array.isArray(untagged.photoIds)) untagged.photoIds = [];
-    const others = (state.property.groups || []).filter(
-      (g) => g !== untagged && (g.photoIds || []).includes(photoId)
-    );
-    const inUntagged = untagged.photoIds.includes(photoId);
-    if (others.length === 0) {
-      if (!inUntagged) untagged.photoIds.push(photoId);
-    } else if (inUntagged) {
-      const i = untagged.photoIds.indexOf(photoId);
-      if (i !== -1) untagged.photoIds.splice(i, 1);
-    }
+    if (!Array.isArray(target.photoIds)) target.photoIds = [];
+    if (!target.photoIds.includes(photoId)) target.photoIds.push(photoId);
+    return true;
   }
 
   function setLightboxSource(sourceId, preferPhotoId) {
@@ -3396,6 +3360,7 @@
   }
 
   function openLightbox(group, photo) {
+    populateLightboxTagOptions();
     const built = buildLightboxSources();
     lightbox.sources = built.sources;
     lightbox.ownersById = built.ownersById;
@@ -3445,7 +3410,10 @@
     if (els.lightboxBuilding) {
       els.lightboxBuilding.value = BUILDING_TAGS.includes(p.building) ? p.building : DEFAULT_BUILDING;
     }
-    renderLightboxTagChips(p);
+    if (els.lightboxTag) {
+      const owner = findOwningGroup(p.id);
+      if (owner) els.lightboxTag.value = owner.id;
+    }
     if (els.lightboxDefect) {
       const on = !!p.defect;
       els.lightboxDefect.setAttribute("aria-pressed", String(on));
@@ -3770,18 +3738,17 @@
       persistLightboxPhoto();
     });
   }
-  if (els.lightboxTags) {
-    els.lightboxTags.addEventListener("click", (e) => {
-      const chip = e.target.closest(".lightbox-tag-chip");
-      if (!chip || !els.lightboxTags.contains(chip)) return;
+  if (els.lightboxTag) {
+    els.lightboxTag.addEventListener("change", () => {
       const p = currentLightboxPhoto();
       if (!p) return;
-      const groupId = chip.dataset.groupId;
-      togglePhotoInGroup(p.id, groupId);
-      renderLightboxTagChips(p);
+      const moved = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
       persistLightboxPhoto();
-      saveProperty();
-      renderGroups();
+      if (moved) {
+        saveProperty();
+        renderGroups();
+        toast("Photo moved to a new category.");
+      }
     });
   }
   if (els.lightboxDefect) {
@@ -3842,15 +3809,11 @@
     // and the latest compass heading captured during the session is
     // applied to that window's orientation on commit.
     pendingWindowPhoto: null,
-    // Multi-tag destinations for the current camera session. Set is
-    // pre-filled from the entry point (per-category Take button or the
-    // top capture card) and edited live via the camera HUD chips.
-    selectedGroupIds: new Set(),
     els: {
       overlay: document.getElementById("camera-overlay"),
       video: document.getElementById("camera-video"),
       flash: document.getElementById("camera-flash"),
-      tagsContainer: document.getElementById("camera-tags"),
+      title: document.getElementById("camera-title"),
       count: document.getElementById("camera-count"),
       thumbs: document.getElementById("camera-thumbs"),
       shutter: document.getElementById("camera-shutter"),
@@ -3862,16 +3825,14 @@
     torchOn: false,
   };
 
-  // Accepts either a single group object, an array/Set of group IDs, or
-  // null. By default the camera HUD hides its tag chip strip — the
-  // destination has already been picked by whichever button opened the
-  // camera. The top Capture card passes { hudTagPicker: true } so the
-  // chips stay editable during a multi-tag shoot.
-  async function openCamera(target, options) {
-    camera.selectedGroupIds = normalizeToGroupIdSet(target);
-    camera.hudTagPicker = !!(options && options.hudTagPicker);
+  // Open the in-app camera against a single destination group. Each
+  // capture in the session is committed to this group on Done.
+  async function openCamera(group) {
+    camera.group = group;
     camera.buffer = [];
-    renderCameraTagChips();
+    if (camera.els.title) {
+      camera.els.title.textContent = (group && group.name) || "Capture";
+    }
     updateCameraCount();
     renderCameraBuffer();
     camera.els.overlay.hidden = false;
@@ -3885,25 +3846,6 @@
       toast("Can't open the in-app camera — check camera permission.", "err");
       return;
     }
-  }
-
-  // Normalise whatever a caller passes to a Set of group IDs (excluding
-  // any IDs that don't resolve to a real group on the current property).
-  function normalizeToGroupIdSet(target) {
-    const out = new Set();
-    if (!target) return out;
-    const groups = (state.property && state.property.groups) || [];
-    const isValidId = (id) => groups.some((g) => g.id === id);
-    if (target instanceof Set || Array.isArray(target)) {
-      for (const id of target) {
-        if (typeof id === "string" && isValidId(id)) out.add(id);
-      }
-      return out;
-    }
-    if (typeof target === "object" && target.id && isValidId(target.id)) {
-      out.add(target.id);
-    }
-    return out;
   }
 
   function cameraVideoTrack() {
@@ -4010,13 +3952,11 @@
         : null;
     stopCompassWatch();
 
-    if (save && camera.buffer.length) {
+    if (save && camera.buffer.length && camera.group) {
       if (laserCapture) {
-        // Laser-screen path: legacy. With windows decoupled from rooms,
-        // this branch only fires when the laser button has been
-        // un-hidden in the per-window template.
-        const groups = resolveDestinationGroups(camera.selectedGroupIds);
-        const targetRoom = groups[0];
+        // Laser-screen path: legacy. Only fires if the laser button has
+        // been un-hidden in the per-window template.
+        const targetRoom = camera.group;
         const captured = camera.buffer[camera.buffer.length - 1];
         const targetWin =
           (targetRoom && targetRoom.windows
@@ -4031,23 +3971,23 @@
           toast("Add a window before capturing from the laser.", "err");
         }
       } else {
-        // Empty chip set falls back to Untagged inside the helper.
-        commitBufferedPhotosToGroups(camera.selectedGroupIds, camera.buffer);
+        commitBufferedPhotos(camera.group, camera.buffer);
         if (windowPhoto) {
           applyWindowPhotoOrientation(windowPhoto, finalHeading);
         }
       }
     }
     camera.buffer = [];
-    camera.selectedGroupIds = new Set();
-    // The top Capture card's chip selection is per-batch — clear it
-    // once the camera closes so the next session starts fresh
-    // (defaults back to Untagged).
-    if (camera.hudTagPicker) {
-      state.captureSelectedGroupIds.clear();
-      renderCaptureCard();
+    // Reset the top Capture card's pick after each batch so the next
+    // session starts on Untagged.
+    if (camera.fromCaptureCard) {
+      if (els.captureTag) {
+        const u = findUntaggedGroup();
+        if (u) els.captureTag.value = u.id;
+      }
     }
-    camera.hudTagPicker = false;
+    camera.fromCaptureCard = false;
+    camera.group = null;
     renderCameraBuffer();
     updateCameraCount();
   }
@@ -4145,40 +4085,6 @@
     });
   }
 
-  // Render a tag-chip strip for the given selected-group set into the
-  // supplied container. Each chip is one top-level group (excluding
-  // Untagged, which is auto-managed). Returns nothing — the caller
-  // wires a click handler that mutates `selected` and re-renders.
-  function renderTagChipStrip(container, selected) {
-    if (!container) return;
-    container.innerHTML = "";
-    if (!state.property) return;
-    for (const g of state.property.groups || []) {
-      if ((g.name || "").trim().toLowerCase() === "untagged") continue;
-      const chip = document.createElement("button");
-      chip.type = "button";
-      chip.className = "lightbox-tag-chip";
-      chip.dataset.groupId = g.id;
-      chip.textContent = g.name;
-      const on = selected && selected.has(g.id);
-      chip.setAttribute("aria-pressed", String(on));
-      chip.classList.toggle("is-on", on);
-      container.appendChild(chip);
-    }
-  }
-
-  function renderCameraTagChips() {
-    const container = camera.els.tagsContainer;
-    if (!container) return;
-    if (!camera.hudTagPicker) {
-      container.hidden = true;
-      container.innerHTML = "";
-      return;
-    }
-    container.hidden = false;
-    renderTagChipStrip(container, camera.selectedGroupIds);
-  }
-
   function findUntaggedGroup() {
     if (!state.property) return null;
     return (state.property.groups || []).find(
@@ -4186,23 +4092,30 @@
     ) || null;
   }
 
-  // Top-level Capture card: chip strip + Take/Upload. The selected set
-  // is shared across the page so it survives camera sessions; photos
-  // captured / uploaded here go to every selected category. With no
-  // chips selected, photos default to Untagged.
-  state.captureSelectedGroupIds = new Set();
+  // Top Capture card: a single-select dropdown that defaults to
+  // Untagged. Take/Upload buttons route the batch to the picked group.
   function renderCaptureCard() {
-    renderTagChipStrip(els.captureTags, state.captureSelectedGroupIds);
+    if (!els.captureTag) return;
+    const previous = els.captureTag.value;
+    const groups = (state.property && state.property.groups) || [];
+    els.captureTag.innerHTML = "";
+    for (const g of groups) {
+      const opt = document.createElement("option");
+      opt.value = g.id;
+      opt.textContent = g.name;
+      els.captureTag.appendChild(opt);
+    }
+    const untagged = findUntaggedGroup();
+    const fallback = (untagged && untagged.id) || (groups[0] && groups[0].id) || "";
+    const target = previous && groups.some((g) => g.id === previous) ? previous : fallback;
+    if (target) els.captureTag.value = target;
   }
 
-  function resolveDestinationGroups(groupIdSet) {
-    const property = state.property;
-    if (!property) return [];
-    const groups = (property.groups || [])
-      .filter((g) => groupIdSet && groupIdSet.has(g.id));
-    if (groups.length) return groups;
-    const u = findUntaggedGroup();
-    return u ? [u] : [];
+  function captureCardSelectedGroup() {
+    if (!state.property) return null;
+    const id = els.captureTag ? els.captureTag.value : "";
+    const groups = state.property.groups || [];
+    return groups.find((g) => g.id === id) || findUntaggedGroup() || groups[0] || null;
   }
 
   async function commitBufferedPhotos(group, photos) {
@@ -4232,79 +4145,8 @@
     queueAutoTag(photos);
   }
 
-  // Commit a buffer of camera captures to every selected group. The
-  // first selected group acts as the "primary" (used for label, expand,
-  // toast); the remainder just receive the photoIds. With no groups
-  // selected, the photos go to Untagged.
-  async function commitBufferedPhotosToGroups(groupIdSet, photos) {
-    if (!photos || !photos.length) return;
-    const groups = resolveDestinationGroups(groupIdSet);
-    if (!groups.length) return;
-    const primary = groups[0];
-    await commitBufferedPhotos(primary, photos);
-    if (groups.length > 1) {
-      for (let i = 1; i < groups.length; i++) {
-        const g = groups[i];
-        for (const photo of photos) {
-          if (!Array.isArray(g.photoIds)) g.photoIds = [];
-          if (!g.photoIds.includes(photo.id)) g.photoIds.push(photo.id);
-          renderThumbInGroup(g, photo);
-        }
-        expandGroup(g);
-        updateGroupCount(g);
-      }
-      for (const photo of photos) syncUntaggedMembership(photo.id);
-      saveProperty();
-    }
-  }
-
-  // Add an uploaded-files batch to every selected group. Mirrors the
-  // multi-group commit flow above for the upload path.
-  async function addUploadedPhotosToGroups(groupIdSet, files) {
-    if (!files || !files.length) return;
-    const groups = resolveDestinationGroups(groupIdSet);
-    if (!groups.length) return;
-    const primary = groups[0];
-    const newPhotos = (await addUploadedPhotos(primary, files)) || [];
-    if (groups.length > 1 && newPhotos.length) {
-      for (let i = 1; i < groups.length; i++) {
-        const g = groups[i];
-        for (const photo of newPhotos) {
-          if (!Array.isArray(g.photoIds)) g.photoIds = [];
-          if (!g.photoIds.includes(photo.id)) g.photoIds.push(photo.id);
-          renderThumbInGroup(g, photo);
-        }
-        expandGroup(g);
-        updateGroupCount(g);
-      }
-      for (const photo of newPhotos) syncUntaggedMembership(photo.id);
-      saveProperty();
-    }
-  }
-
-  // Render a thumb into a specific group's DOM node, or no-op if the
-  // group isn't currently visible. Used by the multi-group commit /
-  // upload helpers to mirror photoIds into the page.
-  function renderThumbInGroup(group, photo) {
-    const thumbsEl = document.querySelector(`[data-group-id="${group.id}"] .thumbs`);
-    if (!thumbsEl) return;
-    if (thumbsEl.querySelector(`.thumb[data-photo-id="${photo.id}"]`)) return;
-    renderThumb(group, photo);
-  }
 
   camera.els.shutter.addEventListener("click", captureFrame);
-  if (camera.els.tagsContainer) {
-    camera.els.tagsContainer.addEventListener("click", (e) => {
-      const chip = e.target.closest(".lightbox-tag-chip");
-      if (!chip || !camera.els.tagsContainer.contains(chip)) return;
-      e.stopPropagation();
-      const id = chip.dataset.groupId;
-      if (!id) return;
-      if (camera.selectedGroupIds.has(id)) camera.selectedGroupIds.delete(id);
-      else camera.selectedGroupIds.add(id);
-      renderCameraTagChips();
-    });
-  }
   camera.els.done.addEventListener("click", () => closeCamera(true));
   camera.els.cancel.addEventListener("click", () => {
     if (camera.buffer.length && !confirm("Discard all captured photos?")) return;
@@ -7803,22 +7645,16 @@ ${nojsFallback}
     });
   }
 
-  if (els.captureTags) {
-    els.captureTags.addEventListener("click", (e) => {
-      const chip = e.target.closest(".lightbox-tag-chip");
-      if (!chip || !els.captureTags.contains(chip)) return;
-      const id = chip.dataset.groupId;
-      if (!id) return;
-      if (state.captureSelectedGroupIds.has(id)) state.captureSelectedGroupIds.delete(id);
-      else state.captureSelectedGroupIds.add(id);
-      renderCaptureCard();
-    });
-  }
-
   if (els.captureTakeBtn) {
     els.captureTakeBtn.addEventListener("click", () => {
       if (!state.property) return;
-      openCamera(state.captureSelectedGroupIds, { hudTagPicker: true });
+      const target = captureCardSelectedGroup();
+      if (!target) {
+        toast("No category to capture into — try reloading.", "err");
+        return;
+      }
+      camera.fromCaptureCard = true;
+      openCamera(target);
     });
   }
 
@@ -7827,7 +7663,15 @@ ${nojsFallback}
       const files = Array.from(e.target.files || []);
       els.captureUpload.value = "";
       if (!files.length) return;
-      await addUploadedPhotosToGroups(state.captureSelectedGroupIds, files);
+      const target = captureCardSelectedGroup();
+      if (!target) {
+        toast("No category to upload into — try reloading.", "err");
+        return;
+      }
+      await addUploadedPhotos(target, files);
+      // Reset the picker after each upload so the next batch starts on Untagged.
+      const u = findUntaggedGroup();
+      if (u && els.captureTag) els.captureTag.value = u.id;
     });
   }
 

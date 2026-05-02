@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=43" />
+    <link rel="stylesheet" href="style.css?v=44" />
   </head>
   <body>
     <header class="app-header">
@@ -153,10 +153,13 @@
       <section class="card capture-card" aria-label="Capture photos">
         <div class="rooms-card-header">
           <h2>Take or upload photos</h2>
-          <p class="rooms-card-hint">Pick one or more categories, then capture or upload. Leave every chip unselected to file photos under Untagged.</p>
+          <p class="rooms-card-hint">Pick a category, then capture or upload. Leave it on Untagged to file photos from the lightbox later.</p>
         </div>
-        <div id="capture-tags" class="lightbox-tags capture-tags" role="group" aria-label="Tags for next capture"></div>
         <div class="capture-controls">
+          <label class="capture-tag-wrap">
+            <span class="sr-only">Tag for next capture</span>
+            <select id="capture-tag" aria-label="Tag for next capture"></select>
+          </label>
           <button id="btn-capture-take" class="btn btn-primary-soft" type="button">Take photo</button>
           <label class="btn btn-upload">
             <input type="file" id="capture-upload" accept="image/*" multiple hidden />
@@ -511,10 +514,10 @@
             </select>
           </label>
           -->
-          <div class="lightbox-control lightbox-tags-wrap">
-            <span>Tags</span>
-            <div id="lightbox-tags" class="lightbox-tags" role="group" aria-label="Tags"></div>
-          </div>
+          <label class="lightbox-control">
+            <span>Tag</span>
+            <select id="lightbox-tag"></select>
+          </label>
           <!-- Lightbox defect chip hidden — uncomment to re-enable.
           <button type="button" id="lightbox-defect" class="lightbox-chip" aria-pressed="false">
             <span class="lightbox-chip-dot" aria-hidden="true"></span>
@@ -708,7 +711,7 @@
         <div class="camera-hud-top">
           <button id="camera-cancel" type="button" class="camera-hud-btn">Cancel</button>
           <div class="camera-hud-title">
-            <div id="camera-tags" class="lightbox-tags camera-tags" role="group" aria-label="Tags for these photos"></div>
+            <span id="camera-title">Capture</span>
             <span class="camera-count" id="camera-count">0</span>
           </div>
           <button id="camera-done" type="button" class="camera-hud-btn primary">Done</button>
@@ -730,6 +733,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=43"></script>
+    <script src="app.js?v=44"></script>
   </body>
 </html>
