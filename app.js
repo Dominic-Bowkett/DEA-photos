@@ -470,6 +470,7 @@
     captureTag: document.getElementById("capture-tag"),
     captureTakeBtn: document.getElementById("btn-capture-take"),
     captureUpload: document.getElementById("capture-upload"),
+    viewPhotosBtn: document.getElementById("btn-view-photos"),
     groupTpl: document.getElementById("group-template"),
     thumbTpl: document.getElementById("thumb-template"),
     addGroupName: null,
@@ -7933,6 +7934,20 @@ ${nojsFallback}
       // Reset the picker after each upload so the next batch starts on Untagged.
       const u = findUntaggedGroup();
       if (u && els.captureTag) els.captureTag.value = u.id;
+    });
+  }
+
+  if (els.viewPhotosBtn) {
+    els.viewPhotosBtn.addEventListener("click", () => {
+      if (!state.property) return;
+      // Open the lightbox with no preselected source — falls back
+      // to "all photos" so the user can flick through everything
+      // they've taken so far. Bails if there's nothing to show.
+      if (!state.photos || state.photos.size === 0) {
+        toast("No photos yet — capture or upload some first.");
+        return;
+      }
+      openLightbox(null, null);
     });
   }
 

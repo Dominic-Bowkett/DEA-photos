@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=81" />
+    <link rel="stylesheet" href="style.css?v=82" />
   </head>
   <body>
     <header class="app-header">
@@ -177,10 +177,13 @@
               <span class="thumb-add-label">Take photo</span>
             </span>
           </button>
-          <label class="btn btn-upload">
-            <input type="file" id="capture-upload" accept="image/*" multiple hidden />
-            Upload
-          </label>
+          <div class="capture-actions-row">
+            <label class="btn btn-upload">
+              <input type="file" id="capture-upload" accept="image/*" multiple hidden />
+              Upload
+            </label>
+            <button id="btn-view-photos" class="btn" type="button">View photos</button>
+          </div>
         </div>
       </section>
 
@@ -569,13 +572,6 @@
         <img class="lightbox-logo" src="logo.png?v=2" alt="Energy Trust" />
         <button class="lightbox-btn lightbox-close" type="button" aria-label="Close">&times;</button>
       </div>
-      <header class="lightbox-header">
-        <label class="lightbox-filter-wrap">
-          <span class="lightbox-filter-label">Showing</span>
-          <select id="lightbox-filter" aria-label="Filter photos"></select>
-        </label>
-        <span class="lightbox-counter" id="lightbox-counter"></span>
-      </header>
       <div class="lightbox-label-bar">
         <label for="lightbox-label" class="lightbox-label-tag">Title</label>
         <div class="lightbox-label-field">
@@ -619,6 +615,13 @@
           </button>
           -->
           <button type="button" id="lightbox-delete" class="lightbox-danger" aria-label="Delete photo">Delete</button>
+        </div>
+        <div class="lightbox-header lightbox-header-bottom">
+          <label class="lightbox-filter-wrap">
+            <span class="lightbox-filter-label">Showing</span>
+            <select id="lightbox-filter" aria-label="Filter photos"></select>
+          </label>
+          <span class="lightbox-counter" id="lightbox-counter"></span>
         </div>
         <!-- AI analysis controls hidden — uncomment to re-enable Claude-driven photo analyses.
         <div class="lightbox-analyse-row">
@@ -818,6 +821,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=77"></script>
+    <script src="app.js?v=82"></script>
   </body>
 </html>

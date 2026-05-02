@@ -851,6 +851,17 @@ input[type="date"]:focus {
   flex-wrap: nowrap;
 }
 
+/* When the Showing row sits at the bottom of the footer (instead
+   of immediately under the brand bar) we want a top border and
+   rounded corners so it reads as one card with the rest of the
+   footer. */
+.lightbox-header-bottom {
+  border-top: 1px solid var(--accent-border);
+  border-bottom: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
 .lightbox-filter-wrap {
   display: flex;
   align-items: center;
@@ -3388,6 +3399,13 @@ body.view-analysis .add-room-row {
 
 .group-capture-block .btn-upload {
   flex: 0 0 auto;
+}
+
+.capture-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .capture-card .capture-controls {
