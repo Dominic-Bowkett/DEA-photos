@@ -3485,8 +3485,20 @@ body.view-analysis .add-room-row {
   margin: 0;
 }
 
-/* Accept on the welcome dialog: pure black text on the yellow
-   accent button so it pops against the brand colour. */
+/* Yellow surfaces always read as pure black text. The accent
+   yellow has low contrast against slate-900 / deep-teal at small
+   sizes, so anything sitting on var(--accent) or var(--accent-soft)
+   gets explicit #000 ink. */
+.btn-primary,
+.btn-primary-soft,
+.btn-na-toggle[aria-pressed="true"],
+.lightbox-tag-chip.is-on,
+.lightbox-tag-chip[aria-pressed="true"],
+.lightbox-caption,
+.lightbox-caption-label,
+.lightbox-counter,
+.lightbox-filter-label,
+.group-count,
 #welcome-accept {
   color: #000;
 }
