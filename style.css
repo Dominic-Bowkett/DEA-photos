@@ -884,26 +884,52 @@ input[type="date"]:focus {
    buried in the footer controls. */
 .lightbox-label-bar {
   display: flex;
-  align-items: stretch;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   /* 16 px matches .lightbox-stage horizontal padding so the input's
      visual edges line up with the image below. */
-  padding: 10px 16px;
+  padding: 12px 16px;
   background: #ffffff;
   border-bottom: 1px solid var(--line);
+}
+
+.lightbox-label-tag {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.lightbox-label-field {
+  position: relative;
+  display: flex;
+  align-items: stretch;
 }
 
 .lightbox-label-input {
   flex: 1 1 auto;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 12px 40px 12px 14px;
   font: inherit;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-weight: 600;
-  background: #ffffff;
+  background: var(--accent-softer);
   color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 1px dashed var(--accent-border);
+  border-radius: 10px;
+  width: 100%;
+}
+
+.lightbox-label-edit {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--accent-ink);
+  font-size: 1.05rem;
+  pointer-events: none;
 }
 
 .lightbox-label-input::placeholder {
