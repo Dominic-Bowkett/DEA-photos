@@ -37,12 +37,15 @@
             <button id="btn-refresh" class="btn btn-ghost btn-icon" type="button" title="Reload the app" aria-label="Reload the app">
               <span aria-hidden="true">↻</span>
             </button>
+            <!-- AI features hidden — uncomment to re-enable Claude API settings and auto-label/tag.
             <button id="btn-settings" class="btn btn-ghost btn-icon" type="button" title="Settings" aria-label="Settings">
               <span aria-hidden="true">⚙</span>
             </button>
             <button id="btn-autolabel" class="btn btn-ghost btn-icon" type="button" title="Auto-label &amp; tag photos with AI" aria-label="Auto-label and tag photos with AI">
               <span aria-hidden="true">✨</span>
             </button>
+            -->
+
           </div>
         </div>
         <div class="header-row header-row-export">
@@ -88,9 +91,10 @@
         </div>
       </section>
 
+      <!-- Totals card hidden — uncomment to re-enable the per-property totals (rooms, lights, chimneys, flues, ventilation).
       <section class="card totals-card" id="totals-card" aria-label="Property totals">
         <div class="totals-header" id="totals-header" role="button" tabindex="0" aria-expanded="false" aria-controls="totals-grid">
-          <span class="group-chevron totals-chevron" aria-hidden="true">▾</span>
+          <span class="group-chevron totals-chevron" aria-hidden="true">&#x25BE;</span>
           <h2 class="totals-card-title">Totals</h2>
         </div>
         <div class="totals-grid" id="totals-grid">
@@ -136,6 +140,8 @@
           </div>
         </div>
       </section>
+      -->
+
 
       <div class="view-toggle" role="tablist" aria-label="Photo layout">
         <button class="view-toggle-btn is-active" data-view="group" role="tab" aria-selected="true" type="button">By Group</button>
@@ -437,10 +443,12 @@
       </header>
       <div class="lightbox-label-bar">
         <input type="text" id="lightbox-label" class="lightbox-label-input" placeholder="Photo label" aria-label="Photo label" />
+        <!-- AI label button hidden — uncomment to re-enable Claude-generated labels.
         <button type="button" id="lightbox-label-ai" class="lightbox-label-ai" title="Generate label with AI" aria-label="Generate label with AI">
           <span class="lightbox-label-ai-glyph" aria-hidden="true">✨</span>
           <span class="lightbox-label-ai-text">AI label</span>
         </button>
+        -->
       </div>
       <div class="lightbox-stage">
         <button class="lightbox-btn lightbox-prev" type="button" aria-label="Previous photo">&#x2039;</button>
@@ -512,6 +520,7 @@
       </div>
     </div>
 
+    <!-- AI dialogs hidden — uncomment to re-enable the Claude API settings dialog and the auto-label/auto-tag dialog.
     <div id="settings-dialog" class="dialog" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div class="dialog-backdrop" id="settings-backdrop"></div>
       <div class="dialog-card">
@@ -530,10 +539,10 @@
         </div>
         <label class="dialog-toggle">
           <input type="checkbox" id="settings-auto-tag" />
-          <span>Auto-tag every new photo (radiator → Heating, meter → Meters, …)</span>
+          <span>Auto-tag every new photo (radiator -> Heating, meter -> Meters, ...)</span>
         </label>
         <p class="dialog-help">
-          <strong>Key is stored in this browser only</strong> — in
+          <strong>Key is stored in this browser only</strong> - in
           <code>localStorage</code>, which any code running on this page (including
           browser extensions) can read. Create a dedicated API key with spend
           limits on the Anthropic Console and rotate it if you suspect it's been
@@ -552,7 +561,7 @@
       <div class="dialog-backdrop" id="autolabel-backdrop"></div>
       <div class="dialog-card">
         <h2 id="autolabel-title">Auto-label &amp; tag</h2>
-        <p>Generate labels or photo tags (Heating / Meters / Windows / …) across this property using Claude.</p>
+        <p>Generate labels or photo tags (Heating / Meters / Windows / ...) across this property using Claude.</p>
         <div class="settings-grid">
           <label class="settings-field">
             <span>Label scope</span>
@@ -572,11 +581,11 @@
         </div>
         <p class="dialog-help">
           Every newly-captured photo starts with a default label like
-          <em>"Bedroom 1 — 3"</em>. <strong>Run auto-label</strong> replaces those
+          <em>"Bedroom 1 - 3"</em>. <strong>Run auto-label</strong> replaces those
           with something more descriptive while leaving any labels you've
           typed manually alone. <strong>Run auto-tag</strong> sorts photos
           into the same tags the camera-capture flow uses (Heating /
-          Meters / Ventilation / …). Uses the model chosen in Settings —
+          Meters / Ventilation / ...). Uses the model chosen in Settings -
           <strong>Haiku is much cheaper</strong> for bulk runs.
         </p>
         <div class="dialog-actions">
@@ -586,6 +595,8 @@
         <button class="btn btn-ghost-dark" id="autolabel-cancel" type="button">Cancel</button>
       </div>
     </div>
+    -->
+
 
     <div id="originals-parts-dialog" class="dialog" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="originals-parts-title">
       <div class="dialog-backdrop" id="originals-parts-backdrop"></div>
