@@ -2457,6 +2457,8 @@
         if (!Array.isArray(list)) return;
         const i = list.findIndex((w) => w.id === win.id);
         if (i === -1) return;
+        const label = `Window ${i + 1}`;
+        if (!confirm(`Delete ${label}? This can't be undone.`)) return;
         list.splice(i, 1);
         saveProperty();
         const stack = node.closest(".room-windows-stack, .windows-list");
