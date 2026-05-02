@@ -3156,25 +3156,6 @@ body.view-analysis .add-room-row {
   flex-wrap: wrap;
 }
 
-.btn-help {
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border-radius: 999px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
-  background: var(--line-soft);
-  color: var(--muted);
-  border-color: var(--line);
-}
-
-.btn-help:hover {
-  filter: brightness(0.95);
-  color: var(--accent-ink);
-}
-
 .group-body {
   display: flex;
   flex-direction: column;
@@ -3187,4 +3168,50 @@ body.view-analysis .add-room-row {
 
 .group-untagged .group-actions {
   display: none;
+}
+
+.group-help {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+/* -------------------- Top Capture card select -------------------- */
+.capture-card .capture-controls {
+  align-items: center;
+}
+
+.capture-card .capture-tag-wrap {
+  display: inline-flex;
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+
+.capture-card #capture-tag {
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+  background-color: var(--card);
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path fill='%230f4f5e' d='M6 8 0 0h12z'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 9px 32px 9px 12px;
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.capture-card #capture-tag:hover {
+  border-color: var(--accent-border);
+}
+
+.capture-card #capture-tag:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }

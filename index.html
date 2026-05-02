@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=50" />
+    <link rel="stylesheet" href="style.css?v=51" />
   </head>
   <body>
     <header class="app-header">
@@ -222,26 +222,25 @@
           </div>
           <div class="group-header-actions">
             <button class="btn btn-ghost-dark btn-na-toggle" type="button" aria-pressed="false" title="Mark this category as not applicable for this property">N/A</button>
-            <button class="btn btn-ghost btn-help" type="button" aria-label="Help">?</button>
           </div>
         </header>
         <div class="group-body">
-          <div class="group-actions">
-            <button class="btn btn-primary-soft btn-take-photo" type="button">Take photo</button>
-            <label class="btn btn-upload">
-              <input type="file" class="file-input-upload" accept="image/*" multiple hidden />
-              Upload
-            </label>
-            <button class="btn btn-ghost-dark btn-remove-group" type="button" title="Remove group">Remove</button>
-          </div>
           <div class="thumbs">
-            <button type="button" class="thumb thumb-add btn-take-photo-tile" title="Take another photo">
+            <button type="button" class="thumb thumb-add btn-take-photo-tile" title="Take a photo">
               <span class="thumb-add-inner">
                 <span class="thumb-add-plus" aria-hidden="true">+</span>
                 <span class="thumb-add-label">Take photo</span>
               </span>
             </button>
           </div>
+          <div class="group-actions">
+            <label class="btn btn-upload">
+              <input type="file" class="file-input-upload" accept="image/*" multiple hidden />
+              Upload
+            </label>
+            <button class="btn btn-ghost-dark btn-remove-group" type="button" title="Remove group">Remove</button>
+          </div>
+          <p class="group-help">Help text — placeholder line, real copy coming soon.</p>
         </div>
       </article>
     </template>
@@ -743,6 +742,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=50"></script>
+    <script src="app.js?v=51"></script>
   </body>
 </html>

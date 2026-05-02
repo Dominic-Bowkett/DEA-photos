@@ -2111,15 +2111,22 @@
     const thumbAdd = node.querySelector(".thumb-add");
     const removeBtn = node.querySelector(".btn-remove-group");
     const naBtn = node.querySelector(".btn-na-toggle");
-    const helpBtn = node.querySelector(".btn-help");
+    const helpText = node.querySelector(".group-help");
+
+    if (helpText) {
+      helpText.textContent =
+        SECTION_HELP[group.name] ||
+        `Help text for ${group.name} — placeholder line, real copy coming soon.`;
+    }
 
     if (isUntagged) {
-      // Untagged is a read-only holding pen — no Take/Upload/Remove/N/A.
-      // The user files photos via the lightbox.
+      // Untagged is a read-only holding pen — no Take/Upload/Remove/N/A
+      // and no help text. The user files photos via the lightbox.
       const groupActions = node.querySelector(".group-actions");
       if (groupActions) groupActions.remove();
       if (thumbAdd) thumbAdd.remove();
       if (naBtn) naBtn.remove();
+      if (helpText) helpText.remove();
     } else {
       const takeButtons = node.querySelectorAll(".btn-take-photo, .btn-take-photo-tile");
       takeButtons.forEach((btn) => {
@@ -2163,15 +2170,6 @@
           saveProperty();
         });
       }
-    }
-
-    if (helpBtn) {
-      helpBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const text = SECTION_HELP[group.name] ||
-          `Help text for "${group.name}" coming soon.`;
-        alert(`${group.name}\n\n${text}`);
-      });
     }
 
     (container || els.groups).appendChild(node);
