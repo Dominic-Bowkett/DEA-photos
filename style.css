@@ -2978,3 +2978,117 @@ body.view-analysis .add-room-row {
     padding: 10px 12px;
   }
 }
+
+/* -------------------- Tag chip strip --------------------
+   Used by the lightbox, the top Capture card, and the camera HUD.
+   Default chip: light grey pill. Pressed chip: accent pill with a
+   ring to make the selected state obvious at a glance. */
+.lightbox-tags,
+.capture-tags,
+.camera-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.lightbox-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #f1f5f9;
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.2;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.12s ease, color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.lightbox-tag-chip:hover {
+  filter: brightness(0.97);
+}
+
+.lightbox-tag-chip:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.lightbox-tag-chip.is-on,
+.lightbox-tag-chip[aria-pressed="true"] {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
+}
+
+.lightbox-tag-chip.is-on::before,
+.lightbox-tag-chip[aria-pressed="true"]::before {
+  content: "✓";
+  font-weight: 700;
+  margin-right: 2px;
+}
+
+/* -------------------- Top Capture card -------------------- */
+.capture-card .capture-tags {
+  margin: 8px 0 14px;
+}
+
+.capture-card .capture-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* -------------------- Camera HUD chips --------------------
+   The camera overlay is dark, so the chip palette is inverted: a
+   translucent white pill on the unpressed state, accent fill on the
+   pressed state. Container scrolls horizontally on small screens so
+   23 categories don't take over the HUD. */
+.camera-hud-title .camera-tags {
+  flex: 1;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-height: 120px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.camera-hud-title .lightbox-tag-chip {
+  background: rgba(255, 255, 255, 0.14);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.camera-hud-title .lightbox-tag-chip:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+.camera-hud-title .lightbox-tag-chip.is-on,
+.camera-hud-title .lightbox-tag-chip[aria-pressed="true"] {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.35);
+}
+
+/* -------------------- Group N/A state -------------------- */
+.group.group-na .group-count {
+  color: var(--accent-ink);
+  font-style: italic;
+}
+
+.group.group-na .group-title {
+  opacity: 0.75;
+}
+
+.btn-na-toggle[aria-pressed="true"] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  border-color: var(--accent-border);
+}
