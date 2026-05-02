@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=55" />
+    <link rel="stylesheet" href="style.css?v=56" />
   </head>
   <body>
     <header class="app-header">
@@ -211,10 +211,15 @@
       <section class="card tips">
         <h2>How it works</h2>
         <ul>
-          <li>Tap <strong>Enable GPS</strong> once so each photo can be stamped with its coordinates.</li>
-          <li>Inside each group, tap <strong>Take photo</strong> to capture a shot with the device camera — the date/time recorded is the moment the photo is taken.</li>
-          <li>Every image is re-rendered with a <strong>date/time and GPS overlay</strong> in the bottom right corner.</li>
-          <li>Work is autosaved to this browser — refresh or close the tab and it's still here. Switch between multiple properties using the picker above.</li>
+          <li>Fill in the <strong>property address</strong>, your <strong>name</strong> and the <strong>date of assessment</strong> at the top.</li>
+          <li>Allow location when the browser asks — every capture is stamped with a <strong>date/time and GPS overlay</strong> in the bottom-right corner.</li>
+          <li>Use the <strong>Take or upload</strong> box to capture or upload photos. Pick a category from the dropdown first, or leave it on <strong>Untagged</strong> and tag photos later from the lightbox.</li>
+          <li>You can also tap <strong>Take photo</strong> or <strong>Upload</strong> inside any category card — those captures go straight into that category.</li>
+          <li>Tap a thumbnail to open the lightbox. From there you can rename a photo, switch its category, or delete it.</li>
+          <li>If a category doesn't apply to this property, tap <strong>N/A</strong> on its header — it stops nagging you on download.</li>
+          <li>Optional: open <strong>Window Measurements</strong> to record window types, ages, sizes and orientation. The pin button reads the phone's compass to set orientation.</li>
+          <li>When you're done, tap <strong>Download PDF</strong> or <strong>Export photos</strong>. The app will warn you about untagged photos or empty categories first.</li>
+          <li>Work is autosaved to this browser — refresh or close the tab and it's still here. Switch between multiple properties using the picker at the top.</li>
         </ul>
       </section>
     </main>
@@ -559,10 +564,6 @@
       <div class="dialog-card">
         <h2 id="pdf-layout-title">Download PDF</h2>
         <p>Choose how the photos are organised in the report.</p>
-        <label class="dialog-toggle">
-          <input type="checkbox" id="pdf-include-analysis" checked />
-          <span>Include AI analysis captions</span>
-        </label>
         <label class="dialog-toggle" id="pdf-share-toggle-wrap" hidden>
           <input type="checkbox" id="pdf-share" />
           <span>Share via system (Save to Drive / Files)</span>
@@ -572,13 +573,11 @@
           <button class="btn" id="pdf-layout-tag" type="button">By Tag</button>
         </div>
         <p class="dialog-help">
-          <strong>By group</strong> lists photos under External Elevations,
-          Loft, each room, etc. — the same order as the app.
-          <strong>By Tag</strong> shows tagged photos first, grouped by their
-          tag (Room, Meters, Windows, etc.), then any untagged photos in an
-          "Untagged" section at the end.
-          Untick <em>Include AI analysis captions</em> for a plain-evidence PDF.
-          Tick <em>Share via system</em> to push the PDF straight to Drive,
+          <strong>By group</strong> prints photos category by category in the
+          same order as the app — Floorplan, External Elevations, Wall
+          Construction and so on. <strong>By Tag</strong> uses a flatter
+          layout that groups every photo by its assigned category. Tick
+          <em>Share via system</em> to push the PDF straight to Drive,
           Files, or any installed app via the OS share sheet — handy on iOS
           where direct downloads can be unreliable for large files.
         </p>
@@ -749,6 +748,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=55"></script>
+    <script src="app.js?v=56"></script>
   </body>
 </html>
