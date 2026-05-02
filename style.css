@@ -530,8 +530,11 @@ input[type="date"]:focus {
 }
 
 .group-chevron {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 14px;
+  height: 22px;
   color: var(--muted);
   font-size: 0.95rem;
   transition: transform 0.18s ease;
@@ -552,13 +555,14 @@ input[type="date"]:focus {
   flex: 1 1 auto;
 }
 
-.group-title {
+.group-header .group-title {
   margin: 0;
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 600;
   padding: 0;
   border-radius: 6px;
   min-width: 0;
+  line-height: 22px;
 }
 
 .group-title:focus {
@@ -3123,6 +3127,9 @@ body.view-analysis .add-room-row {
 
 .windows-card .windows-header h2 {
   margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 22px;
 }
 
 .windows-card .windows-chevron {
