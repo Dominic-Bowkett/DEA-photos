@@ -8287,26 +8287,5 @@ ${nojsFallback}
       } catch (_) {}
     };
     acceptBtn.addEventListener("click", dismiss);
-
-    const installBtn = document.getElementById("welcome-install-btn");
-    const installHelp = document.getElementById("welcome-install-help");
-    if (installBtn) {
-      installBtn.addEventListener("click", async () => {
-        // Always reveal the instructions panel — useful on iOS where
-        // there's no native prompt available, and as guidance on
-        // Android while the native dialog runs.
-        if (installHelp) installHelp.hidden = false;
-        if (deferredInstallPrompt) {
-          try {
-            deferredInstallPrompt.prompt();
-            const { outcome } = await deferredInstallPrompt.userChoice;
-            deferredInstallPrompt = null;
-            if (outcome === "accepted") dismiss();
-          } catch (err) {
-            console.warn("install prompt failed", err);
-          }
-        }
-      });
-    }
   }
 })();
