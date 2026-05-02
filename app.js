@@ -750,6 +750,16 @@
     ctx.closePath();
   }
 
+  // Pre-load the Energy Trust logo so the capture-time stamp doesn't
+  // depend on a fresh network round-trip. Decoded once on app start
+  // and reused for every overlay draw.
+  const stampLogoImg = new Image();
+  let stampLogoReady = false;
+  stampLogoImg.crossOrigin = "anonymous";
+  stampLogoImg.onload = () => { stampLogoReady = true; };
+  stampLogoImg.onerror = () => { stampLogoReady = false; };
+  stampLogoImg.src = "logo.png?v=2";
+
   function drawOverlay(ctx, width, height, dateText, gpsText) {
     const pad = Math.round(Math.min(width, height) * 0.015);
     const fontPx = Math.max(14, Math.round(Math.min(width, height) * 0.028));
@@ -779,6 +789,38 @@
       y += fontPx + lineGap;
     }
     ctx.shadowBlur = 0;
+
+    // Energy Trust brand stamp, bottom-left. Black box matches the
+    // height of the date / GPS stamp on the right; logo sits inside
+    // with a small inner margin and is capped to ~32% image width so
+    // it never dominates portrait shots.
+    if (
+      stampLogoReady &&
+      stampLogoImg.naturalWidth > 0 &&
+      stampLogoImg.naturalHeight > 0
+    ) {
+      const aspect = stampLogoImg.naturalWidth / stampLogoImg.naturalHeight;
+      const logoBoxH = boxH;
+      const innerPadY = Math.max(2, Math.round(pad * 0.6));
+      const innerPadX = Math.max(4, Math.round(pad * 1.0));
+      let logoH = logoBoxH - innerPadY * 2;
+      let logoW = logoH * aspect;
+      const logoBoxMaxW = Math.round(width * 0.32);
+      let logoBoxW = logoW + innerPadX * 2;
+      if (logoBoxW > logoBoxMaxW) {
+        logoBoxW = logoBoxMaxW;
+        logoW = logoBoxW - innerPadX * 2;
+        logoH = logoW / aspect;
+      }
+      const lx = pad;
+      const ly = height - pad - logoBoxH;
+      ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+      roundRect(ctx, lx, ly, logoBoxW, logoBoxH, Math.round(pad * 0.6));
+      ctx.fill();
+      const imgX = lx + (logoBoxW - logoW) / 2;
+      const imgY = ly + (logoBoxH - logoH) / 2;
+      ctx.drawImage(stampLogoImg, imgX, imgY, logoW, logoH);
+    }
   }
 
   async function processFile(file) {
