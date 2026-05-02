@@ -632,10 +632,12 @@
 
   // -------------------- GPS --------------------
   function setGpsStatus(status, text) {
-    els.gpsDot.classList.remove("ok", "err");
-    if (status === "ok") els.gpsDot.classList.add("ok");
-    if (status === "err") els.gpsDot.classList.add("err");
-    if (text) els.gpsLabel.textContent = text;
+    if (els.gpsDot) {
+      els.gpsDot.classList.remove("ok", "err");
+      if (status === "ok") els.gpsDot.classList.add("ok");
+      if (status === "err") els.gpsDot.classList.add("err");
+    }
+    if (text && els.gpsLabel) els.gpsLabel.textContent = text;
   }
 
   function enableGps() {
@@ -7323,7 +7325,7 @@ ${nojsFallback}
     }
   }
 
-  els.gpsBtn.addEventListener("click", enableGps);
+  if (els.gpsBtn) els.gpsBtn.addEventListener("click", enableGps);
 
   if (els.refreshBtn) {
     els.refreshBtn.addEventListener("click", async () => {
