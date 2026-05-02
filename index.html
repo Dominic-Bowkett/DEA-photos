@@ -146,8 +146,10 @@
       <div class="view-toggle" role="tablist" aria-label="Photo layout">
         <button class="view-toggle-btn is-active" data-view="group" role="tab" aria-selected="true" type="button">By Group</button>
         <button class="view-toggle-btn" data-view="tag" role="tab" aria-selected="false" type="button">By Tag</button>
+        <!-- Defects and Analysis tabs hidden — uncomment to re-enable.
         <button class="view-toggle-btn" data-view="defects" role="tab" aria-selected="false" type="button">Defects</button>
         <button class="view-toggle-btn" data-view="analysis" role="tab" aria-selected="false" type="button">Analysis</button>
+        -->
       </div>
 
       <section id="groups" class="groups" aria-label="Photo groups"></section>
@@ -241,10 +243,12 @@
             <button type="button" class="thumb-save" title="Save this photo" aria-label="Save this photo">↓</button>
             <button type="button" class="thumb-remove" title="Remove photo" aria-label="Remove photo">&times;</button>
           </div>
+          <!-- Defect chip hidden — uncomment to re-enable per-photo defect flagging.
           <button type="button" class="thumb-defect" aria-pressed="false" title="Toggle defect">
             <span class="thumb-defect-dot" aria-hidden="true"></span>
             <span class="thumb-defect-label">No defect</span>
           </button>
+          -->
         </figcaption>
       </figure>
     </template>
@@ -487,10 +491,12 @@
             <span>Tag</span>
             <select id="lightbox-tag"></select>
           </label>
+          <!-- Lightbox defect chip hidden — uncomment to re-enable.
           <button type="button" id="lightbox-defect" class="lightbox-chip" aria-pressed="false">
             <span class="lightbox-chip-dot" aria-hidden="true"></span>
             <span class="lightbox-chip-label">No defect</span>
           </button>
+          -->
           <button type="button" id="lightbox-delete" class="lightbox-danger" aria-label="Delete photo">Delete</button>
         </div>
         <div class="lightbox-analyse-row">
