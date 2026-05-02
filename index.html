@@ -6,17 +6,19 @@
     <meta name="theme-color" content="#0f172a" />
     <title>DEA Photo Evidence — Domestic Energy Assessor</title>
     <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="icon" type="image/png" href="icon.png?v=1" />
+    <link rel="apple-touch-icon" href="icon.png?v=1" />
     <meta name="application-name" content="DEA Photo Evidence" />
     <meta name="apple-mobile-web-app-title" content="DEA Photo Evidence" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=63" />
+    <link rel="stylesheet" href="style.css?v=64" />
   </head>
   <body>
     <header class="app-header">
       <div class="brand">
-        <span class="logo" aria-hidden="true">DEA</span>
+        <img class="logo logo-img" src="logo.png?v=1" alt="Energy Trust" />
         <div>
           <h1>DEA Photo Evidence</h1>
           <p class="subtitle">Domestic Energy Assessor — stamped &amp; geotagged</p>
@@ -496,6 +498,7 @@
     <div id="welcome-dialog" class="dialog" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
       <div class="dialog-backdrop" id="welcome-backdrop"></div>
       <div class="dialog-card welcome-card">
+        <img class="welcome-logo" src="logo.png?v=1" alt="Energy Trust" />
         <h2 id="welcome-title">Welcome to DEA Photo Evidence</h2>
         <p>Quick rundown before you start:</p>
         <ul class="welcome-list">
@@ -509,6 +512,17 @@
           <li>When you're done, tap <strong>Download PDF</strong> or <strong>Export photos</strong>. The app will warn you about untagged photos or empty categories first.</li>
           <li>Work is autosaved to this browser — refresh or close the tab and it's still here.</li>
         </ul>
+        <div class="welcome-install">
+          <button type="button" id="welcome-install-btn" class="welcome-install-btn">
+            <span class="welcome-install-icon" aria-hidden="true">&#x2B07;</span>
+            <span class="welcome-install-label">Add to Home Screen</span>
+          </button>
+          <div class="welcome-install-help" id="welcome-install-help" hidden>
+            <p><strong>iPhone / iPad (Safari):</strong> tap the <em>Share</em> icon at the bottom of the screen, scroll down and choose <em>Add to Home Screen</em>, then tap <em>Add</em>.</p>
+            <p><strong>Android (Chrome):</strong> tap the <em>menu</em> (&#x22EE;) at the top right and choose <em>Install app</em> or <em>Add to Home screen</em>.</p>
+            <p>Once installed, the app opens fullscreen from your home screen and works offline for capture.</p>
+          </div>
+        </div>
         <p class="dialog-help">Terms of use will be added here later.</p>
         <div class="dialog-actions">
           <button class="btn btn-primary" id="welcome-accept" type="button">Accept</button>
@@ -777,6 +791,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=63"></script>
+    <script src="app.js?v=64"></script>
   </body>
 </html>

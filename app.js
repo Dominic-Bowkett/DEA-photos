@@ -8227,7 +8227,16 @@ ${nojsFallback}
 
   // First-load welcome dialog. Accept persists a flag in localStorage
   // so it doesn't show again; Close just dismisses for this session.
+  // Also wires the "Add to Home Screen" button: prefers the native
+  // beforeinstallprompt where it's available (Chrome / Edge), falls
+  // back to revealing platform-specific manual instructions.
   const WELCOME_ACCEPTED_KEY = "retrofit-photos:welcome-accepted";
+  let deferredInstallPrompt = null;
+  window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredInstallPrompt = e;
+  });
+
   function maybeShowWelcome() {
     try {
       if (localStorage.getItem(WELCOME_ACCEPTED_KEY) === "1") return;
@@ -8253,5 +8262,27 @@ ${nojsFallback}
     acceptBtn.addEventListener("click", () => dismiss(true));
     closeBtn.addEventListener("click", () => dismiss(false));
     if (backdrop) backdrop.addEventListener("click", () => dismiss(false));
+
+    const installBtn = document.getElementById("welcome-install-btn");
+    const installHelp = document.getElementById("welcome-install-help");
+    if (installBtn) {
+      installBtn.addEventListener("click", async () => {
+        if (deferredInstallPrompt) {
+          try {
+            deferredInstallPrompt.prompt();
+            const { outcome } = await deferredInstallPrompt.userChoice;
+            deferredInstallPrompt = null;
+            if (outcome === "accepted") {
+              dismiss(true);
+              return;
+            }
+          } catch (err) {
+            console.warn("install prompt failed", err);
+          }
+        }
+        // Reveal the manual instructions (iOS Safari, etc.).
+        if (installHelp) installHelp.hidden = false;
+      });
+    }
   }
 })();

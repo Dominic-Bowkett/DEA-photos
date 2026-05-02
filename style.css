@@ -75,6 +75,17 @@ html {
   letter-spacing: 0.5px;
 }
 
+/* When the logo is an image (the Energy Trust banner) we drop the
+   square chip styling and let it sit at its natural ratio so the
+   wordmark reads. */
+.brand .logo-img {
+  width: auto;
+  height: 32px;
+  border-radius: 0;
+  background: transparent;
+  display: block;
+}
+
 .brand h1 {
   font-size: 1.05rem;
   margin: 0;
@@ -3266,6 +3277,76 @@ body.view-analysis .add-room-row {
 
 .welcome-list li {
   line-height: 1.45;
+}
+
+.welcome-logo {
+  display: block;
+  height: 56px;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto 4px;
+}
+
+.welcome-install {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+}
+
+.welcome-install-btn {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent-border);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.1s ease, transform 0.05s ease;
+}
+
+.welcome-install-btn:hover {
+  filter: brightness(0.97);
+}
+
+.welcome-install-btn:active {
+  transform: translateY(1px);
+}
+
+.welcome-install-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: rgba(15, 79, 94, 0.12);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.welcome-install-help {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--accent-softer);
+  border: 1px solid var(--accent-border);
+  color: var(--ink);
+  font-size: 0.88rem;
+  line-height: 1.45;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.welcome-install-help p {
+  margin: 0;
 }
 
 .group-help {
