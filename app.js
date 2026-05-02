@@ -6448,7 +6448,6 @@ body{display:flex;flex-direction:column;height:100vh}
 .next{right:18px}
 .badges{position:absolute;top:18px;left:18px;display:flex;gap:6px;flex-wrap:wrap;max-width:calc(100% - 36px);z-index:4}
 .badge{display:inline-flex;align-items:center;padding:4px 10px;border-radius:999px;font-size:0.72rem;font-weight:700;letter-spacing:0.3px;background:#ffffff;color:#0f172a;border:1px solid #e2e8f0;box-shadow:0 1px 3px rgba(15,23,42,0.08)}
-.badge-defect{background:#fee2e2;color:#b91c1c;border-color:#fca5a5}
 .badge-tag{background:#f0fdfa;color:#0f766e;border-color:#5eead4}
 .badge-building{background:#f1f5f9;color:#0f172a;border-color:#e2e8f0}
 .badge-ai{background:#ccfbf1;color:#0f766e;border-color:#5eead4;font-weight:700}
@@ -6476,7 +6475,6 @@ body{display:flex;flex-direction:column;height:100vh}
 .film-thumb img{width:100%;height:100%;object-fit:cover;display:block}
 .film-thumb:hover{border-color:#cbd5e1}
 .film-thumb.is-active{border-color:#0d9488;box-shadow:0 0 0 2px rgba(13,148,136,0.25)}
-.film-thumb.has-defect::after{content:"";position:absolute;top:4px;right:4px;width:8px;height:8px;border-radius:50%;background:#dc2626;box-shadow:0 0 0 2px rgba(255,255,255,0.9)}
 .nojs-fallback{padding:20px;max-width:980px;margin:0 auto;color:#0f172a;font-family:inherit}
 .nojs-fallback h2{color:#0f766e;margin:0 0 12px}
 .nojs-fallback section{margin:0 0 24px}
@@ -6503,9 +6501,6 @@ body:not(.js-ready) .app{display:none}
     }
     return ids;
   }
-  function defectIds() {
-    return allPhotoIds().filter(function (id) { return DATA.photos[id] && DATA.photos[id].defect; });
-  }
   function groupIds(id) {
     for (var i = 0; i < DATA.groups.length; i++) if (DATA.groups[i].id === id) return DATA.groups[i].photoIds.slice();
     return [];
@@ -6518,10 +6513,9 @@ body:not(.js-ready) .app{display:none}
     el.sections.innerHTML = "";
     var items = [
       { id: "all", name: "All photos", count: allPhotoIds().length, kind: "special" },
-      { id: "defects", name: "Defects only", count: defectIds().length, kind: "danger" },
     ];
     el.sections.appendChild(header("Overview"));
-    for (var i = 0; i < 2; i++) el.sections.appendChild(itemBtn(items[i]));
+    for (var i = 0; i < items.length; i++) el.sections.appendChild(itemBtn(items[i]));
 
     var tagItems = tagBuckets();
     if (tagItems.length) {
@@ -6587,7 +6581,6 @@ body:not(.js-ready) .app{display:none}
     state.filter = f;
     state.idx = 0;
     if (f === "all") state.photoIds = allPhotoIds();
-    else if (f === "defects") state.photoIds = defectIds();
     else if (f.indexOf("tag:") === 0) state.photoIds = tagIds(f.slice(4));
     else state.photoIds = groupIds(f);
     renderSidebar();
@@ -6615,7 +6608,6 @@ body:not(.js-ready) .app{display:none}
     el.img.src = p.src;
     el.img.alt = p.label || "";
     el.badges.innerHTML = "";
-    if (p.defect) el.badges.appendChild(badge("Defect", "badge badge-defect"));
     if (p.roomTag) el.badges.appendChild(badge(p.roomTag, "badge badge-tag"));
     if (p.building) el.badges.appendChild(badge(p.building, "badge badge-building"));
     if (Array.isArray(p.analyses) && p.analyses.length) {
@@ -6727,7 +6719,7 @@ body:not(.js-ready) .app{display:none}
         var p = DATA.photos[id];
         var b = document.createElement("button");
         b.type = "button";
-        b.className = "film-thumb" + (i === state.idx ? " is-active" : "") + (p.defect ? " has-defect" : "");
+        b.className = "film-thumb" + (i === state.idx ? " is-active" : "");
         var img = document.createElement("img");
         img.src = p.src; img.loading = "lazy"; img.alt = "";
         b.appendChild(img);
