@@ -1188,7 +1188,7 @@
     { key: "dmev", label: "DMEV" },
   ];
 
-  const WINDOW_TYPES = ["Single", "Double", "Triple"];
+  const WINDOW_TYPES = ["Single", "Double", "Triple", "Secondary"];
   const WINDOW_AGES = ["Unknown", "Pre 2002", "2002-2021", "2023+"];
   const WINDOW_GAPS = ["6mm", "12mm", "16mm"];
   const WINDOW_FRAMES = ["Wooden", "PVC", "Metal"];
@@ -1203,7 +1203,7 @@
     "North West",
   ];
   const WINDOW_AGES_NEEDING_GAP = new Set(["Unknown", "Pre 2002"]);
-  const WINDOW_TYPES_NEEDING_FRAME = new Set(["Double", "Triple"]);
+  const WINDOW_TYPES_NEEDING_FRAME = new Set(["Double", "Triple", "Secondary"]);
 
   function makeNewWindow(overrides) {
     return {
