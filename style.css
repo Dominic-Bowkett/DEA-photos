@@ -5,13 +5,14 @@
   --muted: #64748b;
   --line: #e2e8f0;
   --line-soft: #f1f5f9;
-  --primary: #1e293b;
+  /* Energy Trust palette — deep teal header, bright yellow accent. */
+  --primary: #0f4f5e;
   --primary-ink: #ffffff;
-  --accent: #0d9488;
-  --accent-ink: #0f766e;
-  --accent-soft: #ccfbf1;
-  --accent-softer: #f0fdfa;
-  --accent-border: #5eead4;
+  --accent: #ffcd00;
+  --accent-ink: #0f4f5e;
+  --accent-soft: #fff3b5;
+  --accent-softer: #fffbe3;
+  --accent-border: #e8c200;
   --danger: #dc2626;
   --danger-soft: #fee2e2;
   --danger-border: #fca5a5;
@@ -425,7 +426,7 @@ input[type="date"]:focus {
 }
 
 .save-status.saving {
-  color: #0f766e;
+  color: var(--accent-ink);
   background: #ecfeff;
 }
 
@@ -443,7 +444,7 @@ input[type="date"]:focus {
 }
 
 .dot.ok {
-  background: #0d9488;
+  background: var(--accent);
   box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.25);
 }
 
@@ -629,8 +630,8 @@ input[type="date"]:focus {
   align-items: center;
   gap: 6px;
   padding: 6px 8px;
-  background: #f0fdfa;
-  border-bottom: 1px solid #5eead4;
+  background: var(--accent-softer);
+  border-bottom: 1px solid var(--accent-border);
 }
 
 .thumb-building {
@@ -639,7 +640,7 @@ input[type="date"]:focus {
   font: inherit;
   font-size: 0.75rem;
   font-weight: 700;
-  border: 1px solid #5eead4;
+  border: 1px solid var(--accent-border);
   border-radius: 6px;
   background: #fff;
   color: var(--primary);
@@ -705,7 +706,7 @@ input[type="date"]:focus {
 .thumb-add {
   margin: 0;
   background: #f8fafc;
-  border: 2px dashed #5eead4;
+  border: 2px dashed var(--accent-border);
   border-radius: 10px;
   aspect-ratio: 4 / 3;
   display: flex;
@@ -1341,9 +1342,9 @@ input[type="date"]:focus {
 }
 
 #camera-torch.is-on {
-  background: #14b8a6;
+  background: var(--accent);
   color: #0f172a;
-  border-color: #14b8a6;
+  border-color: var(--accent);
   box-shadow: 0 0 14px rgba(255, 205, 58, 0.55);
 }
 
@@ -1760,7 +1761,7 @@ input[type="date"]:focus {
 }
 
 .room {
-  border-left: 4px solid #5eead4;
+  border-left: 4px solid var(--accent-border);
   transition: border-color 0.15s ease;
 }
 
@@ -1884,7 +1885,7 @@ input[type="date"]:focus {
 }
 
 .room-title-input:hover {
-  border-color: #5eead4;
+  border-color: var(--accent-border);
 }
 
 .room-title-input:focus {
@@ -1960,7 +1961,7 @@ input[type="date"]:focus {
 }
 
 .room.room-nonhab .room-habitability {
-  color: #0f766e;
+  color: var(--accent-ink);
 }
 
 .room-body {
@@ -2481,7 +2482,7 @@ input[type="date"]:focus {
   font: inherit;
   font-size: 0.72rem;
   font-weight: 600;
-  border: 1px solid #5eead4;
+  border: 1px solid var(--accent-border);
   border-radius: 6px;
   background: #fff;
   color: var(--primary);
@@ -3022,7 +3023,7 @@ body.view-analysis .add-room-row {
 .lightbox-tag-chip.is-on,
 .lightbox-tag-chip[aria-pressed="true"] {
   background: var(--accent);
-  color: #ffffff;
+  color: var(--accent-ink);
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent-soft);
 }
