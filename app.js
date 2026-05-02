@@ -1625,7 +1625,15 @@
     // Default to fully collapsed on load and on view-switch — the user
     // opens what they need. Newly-added rooms / groups still register
     // themselves in state.expanded at creation so they appear open.
+    // Untagged is the exception: it's the holding pen for photos that
+    // need filing, so it stays expanded so the user sees them.
     state.expanded.clear();
+    if (state.property) {
+      const untagged = (state.property.groups || []).find(
+        (g) => (g.name || "").trim().toLowerCase() === "untagged"
+      );
+      if (untagged) state.expanded.add(untagged.id);
+    }
   }
 
   function tagGroupId(tag) {
@@ -2057,16 +2065,14 @@
   function renderGroup(group, container) {
     const node = els.groupTpl.content.firstElementChild.cloneNode(true);
     node.dataset.groupId = group.id;
+    const isUntagged = (group.name || "").trim().toLowerCase() === "untagged";
+    if (isUntagged) node.classList.add("group-untagged");
 
     const header = node.querySelector(".group-header");
     const expanded = state.expanded.has(group.id);
     if (!expanded) node.classList.add("collapsed");
     header.setAttribute("aria-expanded", String(expanded));
     header.addEventListener("click", (e) => {
-      if (e.target.closest(".accordion-toggle")) {
-        toggleGroup(group, node);
-        return;
-      }
       if (e.target.closest("button, input, [contenteditable='true']")) return;
       toggleGroup(group, node);
     });
@@ -2099,38 +2105,43 @@
       });
     }
 
-    const takeButtons = node.querySelectorAll(".btn-take-photo, .btn-take-photo-tile");
-    takeButtons.forEach((btn) => {
-      btn.addEventListener("click", () => openCamera(group));
-    });
-
-    const uploadInput = node.querySelector(".file-input-upload");
-    if (uploadInput) {
-      uploadInput.addEventListener("change", async (e) => {
-        const files = Array.from(e.target.files || []);
-        uploadInput.value = "";
-        if (files.length) await addUploadedPhotos(group, files);
-      });
-    }
-
-    const removeBtn = node.querySelector(".btn-remove-group");
-    if (group.protected) {
-      removeBtn.remove();
-    } else {
-      removeBtn.addEventListener("click", () => removeGroup(group.id));
-    }
-
-    // Untagged is a holding pen for unfiled photos — N/A doesn't make
-    // sense there, so hide the button.
-    const naBtn = node.querySelector(".btn-na-toggle");
+    const groupBody = node.querySelector(".group-body");
     const takeBtn = node.querySelector(".btn-take-photo");
     const uploadLabel = node.querySelector(".btn-upload");
     const thumbAdd = node.querySelector(".thumb-add");
-    if (naBtn) {
-      const isUntagged = (group.name || "").trim().toLowerCase() === "untagged";
-      if (isUntagged) {
-        naBtn.remove();
-      } else {
+    const removeBtn = node.querySelector(".btn-remove-group");
+    const naBtn = node.querySelector(".btn-na-toggle");
+    const helpBtn = node.querySelector(".btn-help");
+
+    if (isUntagged) {
+      // Untagged is a read-only holding pen — no Take/Upload/Remove/N/A.
+      // The user files photos via the lightbox.
+      const groupActions = node.querySelector(".group-actions");
+      if (groupActions) groupActions.remove();
+      if (thumbAdd) thumbAdd.remove();
+      if (naBtn) naBtn.remove();
+    } else {
+      const takeButtons = node.querySelectorAll(".btn-take-photo, .btn-take-photo-tile");
+      takeButtons.forEach((btn) => {
+        btn.addEventListener("click", () => openCamera(group));
+      });
+
+      const uploadInput = node.querySelector(".file-input-upload");
+      if (uploadInput) {
+        uploadInput.addEventListener("change", async (e) => {
+          const files = Array.from(e.target.files || []);
+          uploadInput.value = "";
+          if (files.length) await addUploadedPhotos(group, files);
+        });
+      }
+
+      if (group.protected) {
+        if (removeBtn) removeBtn.remove();
+      } else if (removeBtn) {
+        removeBtn.addEventListener("click", () => removeGroup(group.id));
+      }
+
+      if (naBtn) {
         const applyNaUi = () => {
           const on = group.naMarked === true;
           node.classList.toggle("group-na", on);
@@ -2139,8 +2150,6 @@
           naBtn.title = on
             ? "Marked not applicable — tap to clear"
             : "Mark this category as not applicable for this property";
-          // Hide capture affordances when not applicable so the section
-          // visibly tells the user nothing is expected here.
           if (takeBtn) takeBtn.hidden = on;
           if (uploadLabel) uploadLabel.hidden = on;
           if (thumbAdd) thumbAdd.hidden = on;
@@ -2156,6 +2165,15 @@
       }
     }
 
+    if (helpBtn) {
+      helpBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const text = SECTION_HELP[group.name] ||
+          `Help text for "${group.name}" coming soon.`;
+        alert(`${group.name}\n\n${text}`);
+      });
+    }
+
     (container || els.groups).appendChild(node);
     for (const id of group.photoIds) {
       const photo = state.photos.get(id);
@@ -2163,6 +2181,13 @@
     }
     updateGroupCount(group);
   }
+
+  // Per-section help blurbs — currently placeholders. Add entries as the
+  // copy is provided; falls back to a generic "coming soon" message.
+  const SECTION_HELP = {
+    // "Floorplan": "...",
+    // "External Elevations": "...",
+  };
 
   // -------------------- Rooms rendering --------------------
   function renderRooms() {
@@ -4106,6 +4131,42 @@
     return (state.property.groups || []).find(
       (g) => (g.name || "").trim().toLowerCase() === "untagged"
     ) || null;
+  }
+
+  // Pre-flight check before any PDF / ZIP / photo download. Surfaces
+  // two issues:
+  //   - Photos still in Untagged that need a category.
+  //   - Non-NA categories with zero photos.
+  // The user can choose to proceed anyway. Returns true if download
+  // should continue, false if the user backed out.
+  function validateBeforeDownload() {
+    if (!state.property) return true;
+    const issues = [];
+    const untagged = findUntaggedGroup();
+    const untaggedCount = untagged ? (untagged.photoIds || []).length : 0;
+    if (untaggedCount > 0) {
+      issues.push(
+        `• ${untaggedCount} photo${untaggedCount === 1 ? "" : "s"} still in Untagged — please assign a category before downloading.`
+      );
+    }
+    const emptyNonNa = (state.property.groups || []).filter((g) => {
+      const name = (g.name || "").trim().toLowerCase();
+      if (name === "untagged") return false;
+      if (g.naMarked === true) return false;
+      return (g.photoIds || []).length === 0;
+    });
+    if (emptyNonNa.length) {
+      const names = emptyNonNa.map((g) => g.name).join(", ");
+      issues.push(
+        `• These categories have no photos and aren't marked N/A:\n  ${names}`
+      );
+    }
+    if (!issues.length) return true;
+    const message =
+      "Before downloading, please address:\n\n" +
+      issues.join("\n\n") +
+      "\n\nContinue anyway?";
+    return confirm(message);
   }
 
   // Top Capture card: a single-select dropdown that defaults to
@@ -7712,6 +7773,7 @@ ${nojsFallback}
 
   els.exportBtn.addEventListener("click", () => {
     if (els.exportBtn.disabled) return;
+    if (!validateBeforeDownload()) return;
     openPdfLayoutDialog();
   });
 
@@ -7749,6 +7811,7 @@ ${nojsFallback}
 
   els.exportPhotosBtn.addEventListener("click", () => {
     if (els.exportPhotosBtn.disabled) return;
+    if (!validateBeforeDownload()) return;
     openExportPhotosDialog();
   });
   if (els.originalsPartsCancelBtn) {

@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=49" />
+    <link rel="stylesheet" href="style.css?v=50" />
   </head>
   <body>
     <header class="app-header">
@@ -214,31 +214,34 @@
 
     <template id="group-template">
       <article class="card group" data-group-id="">
-        <header class="group-header" role="button" tabindex="0" aria-expanded="true">
+        <header class="group-header" role="button" tabindex="0" aria-expanded="false">
+          <span class="group-chevron" aria-hidden="true">&#x25BE;</span>
           <div class="group-title-wrap">
             <h2 class="group-title" contenteditable="true" spellcheck="false"></h2>
             <span class="group-count">0 photos</span>
           </div>
+          <div class="group-header-actions">
+            <button class="btn btn-ghost-dark btn-na-toggle" type="button" aria-pressed="false" title="Mark this category as not applicable for this property">N/A</button>
+            <button class="btn btn-ghost btn-help" type="button" aria-label="Help">?</button>
+          </div>
+        </header>
+        <div class="group-body">
           <div class="group-actions">
             <button class="btn btn-primary-soft btn-take-photo" type="button">Take photo</button>
             <label class="btn btn-upload">
               <input type="file" class="file-input-upload" accept="image/*" multiple hidden />
               Upload
             </label>
-            <button class="btn btn-ghost-dark btn-na-toggle" type="button" aria-pressed="false" title="Mark this category as not applicable for this property">N/A</button>
             <button class="btn btn-ghost-dark btn-remove-group" type="button" title="Remove group">Remove</button>
           </div>
-          <button type="button" class="accordion-toggle accordion-toggle-group" aria-label="Open or close this group">
-            <span class="accordion-toggle-icon" aria-hidden="true">▾</span>
-          </button>
-        </header>
-        <div class="thumbs">
-          <button type="button" class="thumb thumb-add btn-take-photo-tile" title="Take another photo">
-            <span class="thumb-add-inner">
-              <span class="thumb-add-plus" aria-hidden="true">+</span>
-              <span class="thumb-add-label">Take photo</span>
-            </span>
-          </button>
+          <div class="thumbs">
+            <button type="button" class="thumb thumb-add btn-take-photo-tile" title="Take another photo">
+              <span class="thumb-add-inner">
+                <span class="thumb-add-plus" aria-hidden="true">+</span>
+                <span class="thumb-add-label">Take photo</span>
+              </span>
+            </button>
+          </div>
         </div>
       </article>
     </template>
@@ -409,12 +412,16 @@
           </button>
           <button type="button" class="room-windows-remove" aria-label="Remove this window">✕</button>
         </legend>
+        <!-- Window Photo (auto orientation) removed — the compass pin
+             button next to the orientation dropdown captures the same
+             heading on demand without needing to open the camera.
         <div class="room-windows-photo-row">
-          <button type="button" class="btn btn-primary-soft btn-window-photo" title="Take a photo of this window — orientation is captured from the phone's compass at shutter time">
-            <span aria-hidden="true">📷</span>
+          <button type="button" class="btn btn-primary-soft btn-window-photo" title="Take a photo of this window">
+            <span aria-hidden="true">&#x1F4F7;</span>
             <span>Window Photo (auto orientation)</span>
           </button>
         </div>
+        -->
         <div class="room-windows-row">
           <label class="room-windows-field">
             <span class="room-windows-label">Type</span>
@@ -736,6 +743,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=49"></script>
+    <script src="app.js?v=50"></script>
   </body>
 </html>

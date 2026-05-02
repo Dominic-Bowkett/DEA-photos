@@ -3136,3 +3136,55 @@ body.view-analysis .add-room-row {
 .windows-card .add-window-row {
   margin-top: 6px;
 }
+
+/* -------------------- Category cards: left-chevron accordion -------------------- */
+.group-header {
+  flex-wrap: nowrap;
+}
+
+.group-header > .group-title-wrap {
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+}
+
+.group-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+}
+
+.btn-help {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  background: var(--line-soft);
+  color: var(--muted);
+  border-color: var(--line);
+}
+
+.btn-help:hover {
+  filter: brightness(0.95);
+  color: var(--accent-ink);
+}
+
+.group-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.group.collapsed .group-body {
+  display: none;
+}
+
+.group-untagged .group-actions {
+  display: none;
+}
