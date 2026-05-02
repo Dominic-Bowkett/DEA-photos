@@ -5,8 +5,9 @@
   --muted: #64748b;
   --line: #e2e8f0;
   --line-soft: #f1f5f9;
-  /* Energy Trust palette — deep teal header, bright yellow accent. */
-  --primary: #0f4f5e;
+  /* Energy Trust palette — slate-black header, deep teal headings,
+     bright yellow accent. */
+  --primary: #0f172a;
   --primary-ink: #ffffff;
   --accent: #ffcd00;
   --accent-ink: #0f4f5e;
@@ -505,14 +506,14 @@ input[type="date"]:focus {
 .group-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  flex-wrap: nowrap;
   cursor: pointer;
   user-select: none;
   border-radius: 8px;
-  padding: 2px 0;
+  padding: 0;
 }
 
 .group-header:focus-visible {
@@ -520,8 +521,8 @@ input[type="date"]:focus {
   outline-offset: 2px;
 }
 
-.group.collapsed .group-header {
-  margin-bottom: 0;
+.group:not(.collapsed) .group-header {
+  margin-bottom: 12px;
 }
 
 .group.collapsed .thumbs {
@@ -544,18 +545,20 @@ input[type="date"]:focus {
 
 .group-title-wrap {
   display: flex;
-  align-items: baseline;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
   flex-wrap: wrap;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .group-title {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 600;
-  padding: 2px 4px;
+  padding: 0;
   border-radius: 6px;
-  min-width: 120px;
+  min-width: 0;
 }
 
 .group-title:focus {
@@ -564,8 +567,22 @@ input[type="date"]:focus {
 }
 
 .group-count {
-  color: var(--muted);
-  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.group-count.is-empty {
+  display: none;
 }
 
 .group-actions {
@@ -3153,7 +3170,15 @@ body.view-analysis .add-room-row {
   align-items: center;
   gap: 6px;
   flex: 0 0 auto;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+}
+
+.btn-na-toggle {
+  padding: 3px 9px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 6px;
+  line-height: 1.2;
 }
 
 .group-body {

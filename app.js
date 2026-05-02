@@ -2995,12 +2995,16 @@
     );
     if (!node) return;
     const n = group.photoIds.length;
-    if (group.naMarked === true) {
-      node.textContent = n
-        ? `Not applicable — ${n} photo${n === 1 ? "" : "s"}`
-        : "Not applicable";
+    // Yellow circle badge with the count; hidden when empty or N/A
+    // (the N/A toggle button itself signals the state).
+    if (n === 0 || group.naMarked === true) {
+      node.textContent = "";
+      node.classList.add("is-empty");
+      node.title = group.naMarked === true ? "Not applicable" : "";
     } else {
-      node.textContent = `${n} photo${n === 1 ? "" : "s"}`;
+      node.textContent = String(n);
+      node.classList.remove("is-empty");
+      node.title = `${n} photo${n === 1 ? "" : "s"}`;
     }
   }
 
@@ -3196,7 +3200,9 @@
       try {
         const photo = await processUploadedFile(file);
         photo.propertyId = state.property.id;
-        photo.label = `${group.name} — ${group.photoIds.length + 1}`;
+        // Leave the label blank — the user can name the photo from
+        // the lightbox if they want; auto-naming clutters PDFs.
+        if (typeof photo.label !== "string") photo.label = "";
         state.photos.set(photo.id, photo);
         group.photoIds.push(photo.id);
         newPhotos.push(photo);
