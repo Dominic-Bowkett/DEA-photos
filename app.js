@@ -6274,22 +6274,6 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
   function openExportPhotosDialog() {
     els.exportPhotosDialog.hidden = false;
     els.exportPhotosDialog.setAttribute("aria-hidden", "false");
-    // Adjust the share button to reflect support so users aren't misled.
-    const probeFile = new File([new Uint8Array([0xff, 0xd8, 0xff, 0xd9])], "probe.jpg", {
-      type: "image/jpeg",
-    });
-    const canShare =
-      typeof navigator !== "undefined" &&
-      typeof navigator.canShare === "function" &&
-      navigator.canShare({ files: [probeFile] });
-    els.exportPhotosShareBtn.disabled = !canShare;
-    els.exportPhotosShareBtn.title = canShare
-      ? ""
-      : "Your browser can't share files — try the ZIP option.";
-    if (!canShare) {
-      els.exportPhotosHelp.innerHTML =
-        "Your browser doesn't support sharing files to Photos. <strong>Download ZIP</strong> saves a single archive of all photos, grouped into folders.";
-    }
   }
 
   function closeExportPhotosDialog() {
@@ -8119,11 +8103,13 @@ ${nojsFallback}
     els.exportShareToggleWrap.hidden = false;
     els.exportShare.checked = false;
   }
-  els.exportPhotosShareBtn.addEventListener("click", () => {
-    // Keep synchronous up to navigator.share() so iOS grants the gesture.
-    closeExportPhotosDialog();
-    exportPhotosShareNow();
-  });
+  if (els.exportPhotosShareBtn) {
+    els.exportPhotosShareBtn.addEventListener("click", () => {
+      // Keep synchronous up to navigator.share() so iOS grants the gesture.
+      closeExportPhotosDialog();
+      exportPhotosShareNow();
+    });
+  }
   els.exportPhotosZipBtn.addEventListener("click", () => {
     const share = exportShareWanted();
     closeExportPhotosDialog();
