@@ -3965,6 +3965,20 @@
       if (moved) {
         saveProperty();
         renderGroups();
+        // Rebuild lightbox sources so the Showing dropdown reflects
+        // the photo's new home, then follow the photo there so the
+        // user keeps seeing it after the retag.
+        const built = buildLightboxSources();
+        lightbox.sources = built.sources;
+        lightbox.ownersById = built.ownersById;
+        const newOwnerId = `g-${els.lightboxTag.value}`;
+        if (built.sources.some((s) => s.id === newOwnerId)) {
+          lightbox.sourceId = newOwnerId;
+        } else if (!built.sources.some((s) => s.id === lightbox.sourceId)) {
+          lightbox.sourceId = "all";
+        }
+        renderLightboxFilter();
+        setLightboxSource(lightbox.sourceId, p.id);
         toast("Photo moved to a new category.");
       }
     });
