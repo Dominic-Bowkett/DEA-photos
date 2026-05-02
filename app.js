@@ -8241,10 +8241,23 @@ ${nojsFallback}
       renderGroups();
       renderPropertySelect();
     }
-    autoRequestGps();
+    // Only kick off GPS automatically if the user has already accepted
+    // the welcome dialog. Otherwise we wait for Accept so the GPS
+    // permission prompt doesn't pop the moment the page loads.
+    if (welcomeAlreadyAccepted()) autoRequestGps();
     maybeShowWelcome();
     registerServiceWorker();
   })();
+
+  function welcomeAlreadyAccepted() {
+    // Inline the storage key here — the WELCOME_ACCEPTED_KEY const is
+    // declared further down and is in TDZ when the boot IIFE runs.
+    try {
+      return localStorage.getItem("dea-photo-evidence:welcome-accepted") === "1";
+    } catch (_) {
+      return false;
+    }
+  }
 
   // Register the minimal service worker. This is what makes the
   // install prompt available on Chrome / Edge — without a SW the
@@ -8285,6 +8298,14 @@ ${nojsFallback}
       try {
         localStorage.setItem(WELCOME_ACCEPTED_KEY, "1");
       } catch (_) {}
+      // Kick off the GPS permission prompt now that the user has
+      // accepted — we deliberately held off on page load so the
+      // browser's location prompt didn't blindside them.
+      try {
+        autoRequestGps();
+      } catch (err) {
+        console.warn("autoRequestGps failed", err);
+      }
     };
     acceptBtn.addEventListener("click", dismiss);
   }
