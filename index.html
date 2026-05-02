@@ -143,14 +143,30 @@
       -->
 
 
+      <!-- View toggle hidden — single by-group view now.
       <div class="view-toggle" role="tablist" aria-label="Photo layout">
         <button class="view-toggle-btn is-active" data-view="group" role="tab" aria-selected="true" type="button">By Group</button>
         <button class="view-toggle-btn" data-view="tag" role="tab" aria-selected="false" type="button">By Tag</button>
-        <!-- Defects and Analysis tabs hidden — uncomment to re-enable.
-        <button class="view-toggle-btn" data-view="defects" role="tab" aria-selected="false" type="button">Defects</button>
-        <button class="view-toggle-btn" data-view="analysis" role="tab" aria-selected="false" type="button">Analysis</button>
-        -->
       </div>
+      -->
+
+      <section class="card capture-card" aria-label="Capture photos">
+        <div class="rooms-card-header">
+          <h2>Take or upload photos</h2>
+          <p class="rooms-card-hint">Pick a category and capture or upload. Leave it on Untagged to file photos from the lightbox later.</p>
+        </div>
+        <div class="capture-controls">
+          <label class="capture-tag-wrap">
+            <span class="sr-only">Tag for next capture</span>
+            <select id="capture-tag" aria-label="Tag for next capture"></select>
+          </label>
+          <button id="btn-capture-take" class="btn btn-primary-soft" type="button">Take photo</button>
+          <label class="btn btn-upload">
+            <input type="file" id="capture-upload" accept="image/*" multiple hidden />
+            Upload
+          </label>
+        </div>
+      </section>
 
       <section id="groups" class="groups" aria-label="Photo groups"></section>
 
@@ -206,6 +222,7 @@
               <input type="file" class="file-input-upload" accept="image/*" multiple hidden />
               Upload
             </label>
+            <button class="btn btn-ghost-dark btn-na-toggle" type="button" aria-pressed="false" title="Mark this category as not applicable for this property">N/A</button>
             <button class="btn btn-ghost-dark btn-remove-group" type="button" title="Remove group">Remove</button>
           </div>
           <button type="button" class="accordion-toggle accordion-toggle-group" aria-label="Open or close this group">
@@ -684,7 +701,10 @@
         <div class="camera-hud-top">
           <button id="camera-cancel" type="button" class="camera-hud-btn">Cancel</button>
           <div class="camera-hud-title">
-            <span id="camera-title">Group</span>
+            <label class="camera-tag-wrap">
+              <span class="sr-only">Tag</span>
+              <select id="camera-tag-select" aria-label="Tag for these photos"></select>
+            </label>
             <span class="camera-count" id="camera-count">0</span>
           </div>
           <button id="camera-done" type="button" class="camera-hud-btn primary">Done</button>

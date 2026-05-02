@@ -8,27 +8,36 @@
   const ACTIVE_KEY = "retrofit-photos:active-property";
 
   const DEFAULT_GROUPS = [
+    { name: "Untagged" },
+    { name: "Floorplan" },
     { name: "External Elevations" },
-    { name: "Windows" },
-    { name: "Loft" },
+    { name: "Wall Construction" },
+    { name: "Roof Construction" },
+    { name: "Loft Space Access" },
+    { name: "Loft Insulation" },
+    { name: "Roof Rooms" },
+    { name: "Openings" },
+    { name: "Corridor / Stairwell" },
+    { name: "Primary Heating System" },
+    { name: "Secondary Heating System" },
+    { name: "Heating System Controls" },
+    { name: "Hot Water Cylinder" },
+    { name: "Hot Water Cylinder Thermostat" },
+    { name: "Shower / Bath" },
+    { name: "Electricity Meter" },
+    { name: "Gas Meter" },
+    { name: "Heating Fuel" },
+    { name: "Conservatory" },
+    { name: "Light Fittings" },
+    { name: "Ventilation" },
+    { name: "Renewables" },
+    { name: "Additional Evidence" },
   ];
 
   // Legacy default-group names that used to exist but have been collapsed
-  // into photo tags. On load we move their photos into External Elevations
-  // and stamp each photo with the mapped tag so the information survives.
-  const LEGACY_GROUP_TO_TAG = {
-    "meters": "Meters",
-    "doors": "Other",
-    "conservatory": "Other",
-    "renewables": "Renewables",
-    "mains heating": "Heating",
-    "secondary heating": "Secondary Heating",
-    "water heating": "Heating",
-    "ventilation": "Ventilation",
-    "lighting": "Lighting",
-    "walls": "Other",
-    "floor": "Other",
-  };
+  // into photo tags. On load we move their photos into Untagged and stamp
+  // each photo with the mapped tag so the information survives.
+  const LEGACY_GROUP_TO_TAG = {};
 
   const BUILDING_TAGS = ["Main", "Ext1", "Ext2", "Ext3", "Ext4"];
   const DEFAULT_BUILDING = "Main";
@@ -457,6 +466,9 @@
     addRoomBtn: document.getElementById("btn-add-room"),
     windows: document.getElementById("windows"),
     addWindowPropertyBtn: document.getElementById("btn-add-window-property"),
+    captureTag: document.getElementById("capture-tag"),
+    captureTakeBtn: document.getElementById("btn-capture-take"),
+    captureUpload: document.getElementById("capture-upload"),
     groupTpl: document.getElementById("group-template"),
     thumbTpl: document.getElementById("thumb-template"),
     addGroupName: null,
@@ -952,7 +964,16 @@
       name: g.name,
       photoIds: [],
       protected: true,
+      naMarked: false,
     }));
+  }
+
+  function normalizeGroupNa(group) {
+    if (typeof group.naMarked !== "boolean") {
+      group.naMarked = false;
+      return true;
+    }
+    return false;
   }
 
   // Rename legacy top-level names that have changed. (Historically these
@@ -1071,14 +1092,20 @@
       }
     }
 
-    // Reorder so External Elevations is first, Loft second, and everything
-    // else keeps its relative order after the two protected defaults.
+    // Ensure every group has a naMarked flag.
+    for (const group of property.groups) {
+      if (normalizeGroupNa(group)) changed = true;
+    }
+
+    // Reorder so the protected default groups appear in their canonical
+    // order, with any custom groups appended after them.
+    const defaultOrder = new Map(
+      DEFAULT_GROUPS.map((g, i) => [g.name.toLowerCase(), i])
+    );
     const orderKey = (g) => {
       const n = (g.name || "").trim().toLowerCase();
-      if (n === "external elevations") return 0;
-      if (n === "windows") return 1;
-      if (n === "loft") return 2;
-      return 3;
+      const idx = defaultOrder.get(n);
+      return idx == null ? defaultOrder.size + 1 : idx;
     };
     const sortedGroups = property.groups
       .map((g, i) => ({ g, i }))
@@ -1542,6 +1569,7 @@
 
     initExpandedForProperty();
     renderMeta();
+    renderCaptureCard();
     renderWindows();
     renderRooms();
     renderGroups();
@@ -2078,6 +2106,42 @@
       removeBtn.addEventListener("click", () => removeGroup(group.id));
     }
 
+    // Untagged is a holding pen for unfiled photos — N/A doesn't make
+    // sense there, so hide the button.
+    const naBtn = node.querySelector(".btn-na-toggle");
+    const takeBtn = node.querySelector(".btn-take-photo");
+    const uploadLabel = node.querySelector(".btn-upload");
+    const thumbAdd = node.querySelector(".thumb-add");
+    if (naBtn) {
+      const isUntagged = (group.name || "").trim().toLowerCase() === "untagged";
+      if (isUntagged) {
+        naBtn.remove();
+      } else {
+        const applyNaUi = () => {
+          const on = group.naMarked === true;
+          node.classList.toggle("group-na", on);
+          naBtn.setAttribute("aria-pressed", String(on));
+          naBtn.textContent = on ? "N/A ✓" : "N/A";
+          naBtn.title = on
+            ? "Marked not applicable — tap to clear"
+            : "Mark this category as not applicable for this property";
+          // Hide capture affordances when not applicable so the section
+          // visibly tells the user nothing is expected here.
+          if (takeBtn) takeBtn.hidden = on;
+          if (uploadLabel) uploadLabel.hidden = on;
+          if (thumbAdd) thumbAdd.hidden = on;
+        };
+        applyNaUi();
+        naBtn.addEventListener("click", (e) => {
+          e.stopPropagation();
+          group.naMarked = !(group.naMarked === true);
+          applyNaUi();
+          updateGroupCount(group);
+          saveProperty();
+        });
+      }
+    }
+
     (container || els.groups).appendChild(node);
     for (const id of group.photoIds) {
       const photo = state.photos.get(id);
@@ -2343,20 +2407,20 @@
     }).catch((err) => {
       console.warn("compass watch failed", err);
     });
-    // Property-level windows commit their photos to the top-level Windows
-    // photo group (auto-created by makeDefaultGroups / migrateDefaults).
-    const target = room || findWindowsGroup();
+    // Property-level windows commit their photos to the Openings group
+    // (auto-created by makeDefaultGroups / migrateDefaults).
+    const target = room || findOpeningsGroup();
     if (!target) {
-      toast("No Windows group available — try reloading the page.", "err");
+      toast("No Openings group available — try reloading the page.", "err");
       return;
     }
     openCamera(target);
   }
 
-  function findWindowsGroup() {
+  function findOpeningsGroup() {
     if (!state.property) return null;
     return (state.property.groups || []).find(
-      (g) => (g.name || "").trim().toLowerCase() === "windows"
+      (g) => (g.name || "").trim().toLowerCase() === "openings"
     ) || null;
   }
 
@@ -2892,7 +2956,13 @@
     );
     if (!node) return;
     const n = group.photoIds.length;
-    node.textContent = `${n} photo${n === 1 ? "" : "s"}`;
+    if (group.naMarked === true) {
+      node.textContent = n
+        ? `Not applicable — ${n} photo${n === 1 ? "" : "s"}`
+        : "Not applicable";
+    } else {
+      node.textContent = `${n} photo${n === 1 ? "" : "s"}`;
+    }
   }
 
   function updateRoomCount(room) {
@@ -3114,10 +3184,11 @@
   }
 
   function addGroup(name) {
-    const group = { id: uid("g"), name: name || "Untitled group", photoIds: [] };
+    const group = { id: uid("g"), name: name || "Untitled group", photoIds: [], naMarked: false };
     state.property.groups.push(group);
     state.expanded.add(group.id);
     renderGroup(group);
+    renderCaptureCard();
     updateExportButton();
     saveProperty();
   }
@@ -3143,6 +3214,7 @@
       state.property.groups.splice(idx, 1);
       const el = els.groups.querySelector(`[data-group-id="${groupId}"]`);
       if (el) el.remove();
+      renderCaptureCard();
       updateExportButton();
       saveProperty();
     })();
@@ -3216,17 +3288,47 @@
   }
 
   function populateLightboxTagOptions() {
-    if (!els.lightboxTag || els.lightboxTag.options.length) return;
-    const none = document.createElement("option");
-    none.value = NO_ROOM_TAG;
-    none.textContent = "— Tag —";
-    els.lightboxTag.appendChild(none);
-    for (const t of ROOM_TAGS) {
+    if (!els.lightboxTag) return;
+    // Re-populate every time the lightbox opens so the option list
+    // tracks the current property's groups (Untagged + the 23 tag
+    // categories + any custom groups).
+    els.lightboxTag.innerHTML = "";
+    const groups = (state.property && state.property.groups) || [];
+    for (const g of groups) {
       const opt = document.createElement("option");
-      opt.value = t;
-      opt.textContent = t;
+      opt.value = g.id;
+      opt.textContent = g.name;
       els.lightboxTag.appendChild(opt);
     }
+  }
+
+  // Find which top-level group currently owns a photo (by photoIds).
+  function findOwningGroup(photoId) {
+    if (!state.property) return null;
+    for (const g of state.property.groups || []) {
+      if ((g.photoIds || []).includes(photoId)) return g;
+    }
+    for (const room of state.property.rooms || []) {
+      if ((room.photoIds || []).includes(photoId)) return room;
+    }
+    return null;
+  }
+
+  // Move a photo between top-level groups. No-op if it's already in
+  // the destination. Returns true if the photo moved.
+  function movePhotoBetweenGroups(photoId, targetGroupId) {
+    if (!state.property) return false;
+    const groups = state.property.groups || [];
+    const target = groups.find((g) => g.id === targetGroupId);
+    if (!target) return false;
+    const owner = findOwningGroup(photoId);
+    if (owner === target) return false;
+    if (owner && Array.isArray(owner.photoIds)) {
+      const i = owner.photoIds.indexOf(photoId);
+      if (i !== -1) owner.photoIds.splice(i, 1);
+    }
+    if (!target.photoIds.includes(photoId)) target.photoIds.push(photoId);
+    return true;
   }
 
   function setLightboxSource(sourceId, preferPhotoId) {
@@ -3306,7 +3408,8 @@
       els.lightboxBuilding.value = BUILDING_TAGS.includes(p.building) ? p.building : DEFAULT_BUILDING;
     }
     if (els.lightboxTag) {
-      els.lightboxTag.value = ROOM_TAGS.includes(p.roomTag) ? p.roomTag : NO_ROOM_TAG;
+      const owner = findOwningGroup(p.id);
+      if (owner) els.lightboxTag.value = owner.id;
     }
     if (els.lightboxDefect) {
       const on = !!p.defect;
@@ -3636,8 +3739,15 @@
     els.lightboxTag.addEventListener("change", () => {
       const p = currentLightboxPhoto();
       if (!p) return;
-      p.roomTag = els.lightboxTag.value;
+      const moved = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
       persistLightboxPhoto();
+      if (moved) {
+        saveProperty();
+        // Re-render the by-group view so counts and thumbs reflect
+        // the move; the lightbox stays open on the same photo.
+        renderGroups();
+        toast("Photo moved to a new category.");
+      }
     });
   }
   if (els.lightboxDefect) {
@@ -3702,7 +3812,7 @@
       overlay: document.getElementById("camera-overlay"),
       video: document.getElementById("camera-video"),
       flash: document.getElementById("camera-flash"),
-      title: document.getElementById("camera-title"),
+      tagSelect: document.getElementById("camera-tag-select"),
       count: document.getElementById("camera-count"),
       thumbs: document.getElementById("camera-thumbs"),
       shutter: document.getElementById("camera-shutter"),
@@ -3717,7 +3827,7 @@
   async function openCamera(group) {
     camera.group = group;
     camera.buffer = [];
-    camera.els.title.textContent = group.name;
+    populateCameraTagSelect(group);
     updateCameraCount();
     renderCameraBuffer();
     camera.els.overlay.hidden = false;
@@ -3970,6 +4080,52 @@
     });
   }
 
+  // Build the option list for a tag dropdown. Used by both the
+  // top-level Capture card and the camera HUD picker.
+  function populateTagSelect(selectEl, selectedId) {
+    if (!selectEl) return;
+    selectEl.innerHTML = "";
+    const groups = (state.property && state.property.groups) || [];
+    for (const g of groups) {
+      const opt = document.createElement("option");
+      opt.value = g.id;
+      opt.textContent = g.name;
+      selectEl.appendChild(opt);
+    }
+    if (selectedId && groups.some((g) => g.id === selectedId)) {
+      selectEl.value = selectedId;
+    }
+  }
+
+  function populateCameraTagSelect(group) {
+    const sel = camera.els.tagSelect;
+    if (!sel) return;
+    populateTagSelect(sel, group ? group.id : null);
+  }
+
+  function findUntaggedGroup() {
+    if (!state.property) return null;
+    return (state.property.groups || []).find(
+      (g) => (g.name || "").trim().toLowerCase() === "untagged"
+    ) || null;
+  }
+
+  // Top-level Capture card: tag select + Take/Upload. Default is Untagged.
+  // Photos taken via this card are routed to whichever group is selected.
+  function renderCaptureCard() {
+    if (!els.captureTag) return;
+    const previous = els.captureTag.value;
+    const untagged = findUntaggedGroup();
+    populateTagSelect(els.captureTag, previous || (untagged && untagged.id));
+  }
+
+  function captureCardSelectedGroup() {
+    if (!state.property) return null;
+    const id = els.captureTag ? els.captureTag.value : "";
+    const groups = state.property.groups || [];
+    return groups.find((g) => g.id === id) || findUntaggedGroup() || groups[0] || null;
+  }
+
   async function commitBufferedPhotos(group, photos) {
     // Auto-expand the group so newly-captured thumbs are immediately visible.
     expandGroup(group);
@@ -3998,6 +4154,14 @@
   }
 
   camera.els.shutter.addEventListener("click", captureFrame);
+  if (camera.els.tagSelect) {
+    camera.els.tagSelect.addEventListener("change", () => {
+      const id = camera.els.tagSelect.value;
+      const next = (state.property && state.property.groups || []).find((g) => g.id === id);
+      if (next) camera.group = next;
+    });
+    camera.els.tagSelect.addEventListener("click", (e) => e.stopPropagation());
+  }
   camera.els.done.addEventListener("click", () => closeCamera(true));
   camera.els.cancel.addEventListener("click", () => {
     if (camera.buffer.length && !confirm("Discard all captured photos?")) return;
@@ -7493,6 +7657,32 @@ ${nojsFallback}
         console.error(err);
         toast("Couldn't add window.", "err");
       }
+    });
+  }
+
+  if (els.captureTakeBtn) {
+    els.captureTakeBtn.addEventListener("click", () => {
+      if (!state.property) return;
+      const target = captureCardSelectedGroup();
+      if (!target) {
+        toast("No category to capture into — try reloading.", "err");
+        return;
+      }
+      openCamera(target);
+    });
+  }
+
+  if (els.captureUpload) {
+    els.captureUpload.addEventListener("change", async (e) => {
+      const files = Array.from(e.target.files || []);
+      els.captureUpload.value = "";
+      if (!files.length) return;
+      const target = captureCardSelectedGroup();
+      if (!target) {
+        toast("No category to upload into — try reloading.", "err");
+        return;
+      }
+      await addUploadedPhotos(target, files);
     });
   }
 
