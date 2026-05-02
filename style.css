@@ -1028,20 +1028,31 @@ input[type="date"]:focus {
 .lightbox-controls {
   display: flex;
   gap: 10px;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: center;
+  flex-wrap: nowrap;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .lightbox-control {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
-  font-size: 0.72rem;
-  color: var(--muted);
-  flex: 1 1 120px;
-  min-width: 100px;
-  max-width: 220px;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ink);
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.lightbox-control > span {
+  flex: 0 0 auto;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.lightbox-control select {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .lightbox-control input,

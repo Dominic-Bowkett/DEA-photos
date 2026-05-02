@@ -3577,9 +3577,9 @@
     els.lightboxImg.src = p.dataUrl;
     els.lightboxImg.alt = p.label || "";
 
-    const owner = currentLightboxOwner();
+    // Caption is just date + GPS now — the category is shown in the
+    // Tag dropdown below the caption.
     const pieces = [];
-    if (owner && owner.name) pieces.push(owner.name);
     if (p.takenAt) pieces.push(new Date(p.takenAt).toLocaleString());
     else if (p.uploadedAt) pieces.push(`Uploaded ${new Date(p.uploadedAt).toLocaleString()}`);
     if (p.gps) pieces.push(formatGps(p.gps));
