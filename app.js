@@ -1519,6 +1519,11 @@
     state.properties.push({ id: p.id, name: p.name });
     renderPropertySelect();
     await switchProperty(p.id);
+    // If the property was created with an address from the prompt
+    // and the assessor was carried over from the previous property,
+    // all three required fields are already filled — give the user
+    // ~1.5s to see them populated, then auto-collapse.
+    maybeAutoCollapseMeta({ delayMs: 1500 });
   }
 
   async function deleteCurrentProperty() {
@@ -1642,21 +1647,21 @@
     els.metaHeader.setAttribute("aria-expanded", String(!collapsed));
   }
 
-  // Auto-collapse the Job details card the first time all three
-  // required fields (address, assessor, date) are filled in. The
-  // latch is session-scoped (resets on page reload) so the behaviour
-  // is predictable and doesn't depend on a persisted flag that could
-  // get stuck on old data. The collapse is debounced so it doesn't
-  // snap shut mid-keystroke.
+  // Auto-collapse the Job details card once all three required
+  // fields (address, assessor, date) are filled. The collapse only
+  // fires after the user blurs a meta input — never mid-typing — so
+  // the card never shuts while they're still editing. The latch is
+  // session-scoped, keyed by property id, so a fresh property on the
+  // same page load can still auto-collapse on its own.
   const autoCollapsedThisSession = new Set();
   let pendingMetaCollapse = null;
-  function maybeAutoCollapseMeta() {
+  function maybeAutoCollapseMeta(opts) {
     if (!state.property) return;
     const id = state.property.id;
     if (autoCollapsedThisSession.has(id)) return;
     const meta = state.property.meta;
-    // If the user has already expanded or already collapsed it manually,
-    // honour that for the rest of this session.
+    // If the card is already collapsed, latch the property so we
+    // don't fight a future re-expand.
     if (meta.collapsed) {
       autoCollapsedThisSession.add(id);
       return;
@@ -1671,14 +1676,13 @@
         dateValue
       );
     };
-    if (!isComplete()) {
-      if (pendingMetaCollapse) {
-        clearTimeout(pendingMetaCollapse);
-        pendingMetaCollapse = null;
-      }
-      return;
-    }
+    if (!isComplete()) return;
     if (pendingMetaCollapse) clearTimeout(pendingMetaCollapse);
+    // Tiny 200ms fuse to coalesce blur+change pairs (e.g. tabbing
+    // through fields fires both). Callers can override the delay —
+    // the new-property path uses a longer delay so the user sees
+    // the populated fields before they snap shut.
+    const delay = (opts && typeof opts.delayMs === "number") ? opts.delayMs : 200;
     pendingMetaCollapse = setTimeout(() => {
       pendingMetaCollapse = null;
       if (!state.property) return;
@@ -1688,7 +1692,7 @@
       state.property.meta.collapsed = true;
       applyMetaCollapsed(true);
       saveProperty();
-    }, 600);
+    }, delay);
   }
 
   function toggleMetaCollapsed() {
@@ -7371,7 +7375,6 @@ ${nojsFallback}
     const nameHandler = () => {
       state.property.name = els.metaName.value.trim() || "Untitled property";
       saveProperty();
-      maybeAutoCollapseMeta();
     };
     els.metaName.addEventListener("input", nameHandler);
     const handler = () => {
@@ -7380,12 +7383,23 @@ ${nojsFallback}
       if (els.metaRef) state.property.meta.ref = els.metaRef.value.trim();
       state.property.meta.date = els.metaDate.value;
       saveProperty();
-      maybeAutoCollapseMeta();
     };
     els.metaAssessor.addEventListener("input", handler);
     if (els.metaAddress) els.metaAddress.addEventListener("input", handler);
     if (els.metaRef) els.metaRef.addEventListener("input", handler);
     els.metaDate.addEventListener("change", handler);
+
+    // Auto-collapse only fires after the user blurs a meta input —
+    // never mid-keystroke — so the card never shuts while they're
+    // still typing. The date field's change event also triggers it
+    // (mobile date pickers don't always blur cleanly).
+    const collapseTrigger = () => maybeAutoCollapseMeta();
+    els.metaName.addEventListener("blur", collapseTrigger);
+    els.metaAssessor.addEventListener("blur", collapseTrigger);
+    if (els.metaAddress) els.metaAddress.addEventListener("blur", collapseTrigger);
+    if (els.metaRef) els.metaRef.addEventListener("blur", collapseTrigger);
+    els.metaDate.addEventListener("blur", collapseTrigger);
+    els.metaDate.addEventListener("change", collapseTrigger);
 
     if (els.metaHeader) {
       els.metaHeader.addEventListener("click", (e) => {
