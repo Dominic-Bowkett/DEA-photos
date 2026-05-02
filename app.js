@@ -1604,6 +1604,10 @@
 
   function renderMeta() {
     const p = state.property;
+    // Ensure the date is populated in state so the auto-collapse check
+    // sees it — old properties created before makeNewProperty seeded a
+    // date might land here with meta.date empty.
+    if (!p.meta.date) p.meta.date = todayISO();
     els.metaName.value = p.name || "";
     els.metaAssessor.value = p.meta.assessor || "";
     if (els.metaAddress) els.metaAddress.value = p.meta.address || "";
@@ -1619,22 +1623,32 @@
   }
 
   // Auto-collapse the Job details card the first time all three
-  // required fields (address, assessor, date) are filled in. We
-  // only do it once per property — autoCollapsedDone latches so we
-  // don't fight the user if they re-expand and edit later. The
-  // collapse is debounced so we don't snap shut mid-typing.
+  // required fields (address, assessor, date) are filled in. The
+  // latch is session-scoped (resets on page reload) so the behaviour
+  // is predictable and doesn't depend on a persisted flag that could
+  // get stuck on old data. The collapse is debounced so it doesn't
+  // snap shut mid-keystroke.
+  const autoCollapsedThisSession = new Set();
   let pendingMetaCollapse = null;
   function maybeAutoCollapseMeta() {
     if (!state.property) return;
+    const id = state.property.id;
+    if (autoCollapsedThisSession.has(id)) return;
     const meta = state.property.meta;
-    if (meta.autoCollapsedDone) return;
+    // If the user has already expanded or already collapsed it manually,
+    // honour that for the rest of this session.
+    if (meta.collapsed) {
+      autoCollapsedThisSession.add(id);
+      return;
+    }
     const isComplete = () => {
       const m = state.property && state.property.meta;
       if (!m) return false;
+      const dateValue = (m.date || (els.metaDate && els.metaDate.value) || "").trim();
       return (
         (state.property.name || "").trim() &&
         (m.assessor || "").trim() &&
-        (m.date || "").trim()
+        dateValue
       );
     };
     if (!isComplete()) {
@@ -1648,11 +1662,10 @@
     pendingMetaCollapse = setTimeout(() => {
       pendingMetaCollapse = null;
       if (!state.property) return;
-      const m = state.property.meta;
-      if (m.autoCollapsedDone) return;
+      if (autoCollapsedThisSession.has(state.property.id)) return;
       if (!isComplete()) return;
-      m.autoCollapsedDone = true;
-      m.collapsed = true;
+      autoCollapsedThisSession.add(state.property.id);
+      state.property.meta.collapsed = true;
       applyMetaCollapsed(true);
       saveProperty();
     }, 600);
@@ -2168,9 +2181,10 @@
     if (isUntagged) {
       // Untagged is a read-only holding pen — no Take/Upload/Remove/N/A
       // and no help text. The user files photos via the lightbox.
+      const captureBlock = node.querySelector(".group-capture-block");
+      if (captureBlock) captureBlock.remove();
       const groupActions = node.querySelector(".group-actions");
       if (groupActions) groupActions.remove();
-      if (thumbAdd) thumbAdd.remove();
       if (naBtn) naBtn.remove();
       if (helpText) helpText.remove();
     } else {
@@ -7798,6 +7812,14 @@ ${nojsFallback}
         toast("No category to capture into — try reloading.", "err");
         return;
       }
+      const isUntagged = (target.name || "").trim().toLowerCase() === "untagged";
+      if (isUntagged) {
+        const ok = confirm(
+          "No category selected. Photos will go to Untagged — you can " +
+          "tag them later from the lightbox. Continue?"
+        );
+        if (!ok) return;
+      }
       camera.fromCaptureCard = true;
       openCamera(target);
     });
@@ -8184,5 +8206,36 @@ ${nojsFallback}
       renderPropertySelect();
     }
     autoRequestGps();
+    maybeShowWelcome();
   })();
+
+  // First-load welcome dialog. Accept persists a flag in localStorage
+  // so it doesn't show again; Close just dismisses for this session.
+  const WELCOME_ACCEPTED_KEY = "retrofit-photos:welcome-accepted";
+  function maybeShowWelcome() {
+    try {
+      if (localStorage.getItem(WELCOME_ACCEPTED_KEY) === "1") return;
+    } catch (_) {
+      // localStorage may be unavailable in private mode — show anyway.
+    }
+    const dialog = document.getElementById("welcome-dialog");
+    const acceptBtn = document.getElementById("welcome-accept");
+    const closeBtn = document.getElementById("welcome-close");
+    const backdrop = document.getElementById("welcome-backdrop");
+    if (!dialog || !acceptBtn || !closeBtn) return;
+    dialog.hidden = false;
+    dialog.setAttribute("aria-hidden", "false");
+    const dismiss = (persist) => {
+      dialog.hidden = true;
+      dialog.setAttribute("aria-hidden", "true");
+      if (persist) {
+        try {
+          localStorage.setItem(WELCOME_ACCEPTED_KEY, "1");
+        } catch (_) {}
+      }
+    };
+    acceptBtn.addEventListener("click", () => dismiss(true));
+    closeBtn.addEventListener("click", () => dismiss(false));
+    if (backdrop) backdrop.addEventListener("click", () => dismiss(false));
+  }
 })();

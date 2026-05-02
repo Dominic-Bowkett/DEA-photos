@@ -3214,6 +3214,50 @@ body.view-analysis .add-room-row {
   border-color: var(--accent-border);
 }
 
+/* Take photo tile + Upload always pinned to the top-left of the
+   body. Used both inside category cards and on the top Capture
+   card so the two areas look the same. */
+.group-capture-block,
+.capture-card .group-capture-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.group-capture-block .thumb-add {
+  width: 100%;
+  max-width: 220px;
+  aspect-ratio: 4 / 3;
+}
+
+.group-capture-block .btn-upload {
+  flex: 0 0 auto;
+}
+
+.capture-card .capture-controls {
+  margin-bottom: 12px;
+}
+
+/* -------------------- Welcome / first-load dialog -------------------- */
+.welcome-card {
+  max-width: 520px;
+}
+
+.welcome-list {
+  margin: 0 0 12px;
+  padding-left: 1.2em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--ink);
+}
+
+.welcome-list li {
+  line-height: 1.45;
+}
+
 .group-help {
   margin: 0;
   color: var(--muted);

@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=59" />
+    <link rel="stylesheet" href="style.css?v=60" />
   </head>
   <body>
     <header class="app-header">
@@ -167,7 +167,14 @@
             <span class="sr-only">Tag for next capture</span>
             <select id="capture-tag" aria-label="Tag for next capture"></select>
           </label>
-          <button id="btn-capture-take" class="btn btn-primary-soft" type="button">Take photo</button>
+        </div>
+        <div class="group-capture-block">
+          <button id="btn-capture-take" type="button" class="thumb thumb-add" title="Take a photo">
+            <span class="thumb-add-inner">
+              <span class="thumb-add-plus" aria-hidden="true">+</span>
+              <span class="thumb-add-label">Take photo</span>
+            </span>
+          </button>
           <label class="btn btn-upload">
             <input type="file" id="capture-upload" accept="image/*" multiple hidden />
             Upload
@@ -237,22 +244,23 @@
           </div>
         </header>
         <div class="group-body">
-          <div class="thumbs">
+          <div class="group-capture-block">
             <button type="button" class="thumb thumb-add btn-take-photo-tile" title="Take a photo">
               <span class="thumb-add-inner">
                 <span class="thumb-add-plus" aria-hidden="true">+</span>
                 <span class="thumb-add-label">Take photo</span>
               </span>
             </button>
-          </div>
-          <div class="group-actions">
             <label class="btn btn-upload">
               <input type="file" class="file-input-upload" accept="image/*" multiple hidden />
               Upload
             </label>
-            <button class="btn btn-ghost-dark btn-remove-group" type="button" title="Remove group">Remove</button>
           </div>
           <p class="group-help">Help text — placeholder line, real copy coming soon.</p>
+          <div class="thumbs"></div>
+          <div class="group-actions">
+            <button class="btn btn-ghost-dark btn-remove-group" type="button" title="Remove group">Remove</button>
+          </div>
         </div>
       </article>
     </template>
@@ -484,6 +492,30 @@
     </template>
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <div id="welcome-dialog" class="dialog" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+      <div class="dialog-backdrop" id="welcome-backdrop"></div>
+      <div class="dialog-card welcome-card">
+        <h2 id="welcome-title">Welcome to DEA Photo Evidence</h2>
+        <p>Quick rundown before you start:</p>
+        <ul class="welcome-list">
+          <li>Fill in the <strong>property address</strong>, your <strong>name</strong> and the <strong>date of assessment</strong> at the top.</li>
+          <li>Allow location when the browser asks — every capture is stamped with a <strong>date/time and GPS overlay</strong> in the bottom-right corner.</li>
+          <li>Use the <strong>Take or upload</strong> box to capture or upload photos. Pick a category from the dropdown first, or leave it on <strong>Untagged</strong> and tag photos later from the lightbox.</li>
+          <li>Tap <strong>Take photo</strong> or <strong>Upload</strong> inside any category card — those captures go straight into that category.</li>
+          <li>Tap a thumbnail to open the lightbox. Rename a photo, switch its category, or delete it.</li>
+          <li>If a category doesn't apply, tap <strong>N/A</strong> on its header — it stops nagging you on download.</li>
+          <li>Optional: open <strong>Window Measurements</strong> to record window types, ages, sizes and orientation. The pin button reads the phone's compass to set orientation.</li>
+          <li>When you're done, tap <strong>Download PDF</strong> or <strong>Export photos</strong>. The app will warn you about untagged photos or empty categories first.</li>
+          <li>Work is autosaved to this browser — refresh or close the tab and it's still here.</li>
+        </ul>
+        <p class="dialog-help">Terms of use will be added here later.</p>
+        <div class="dialog-actions">
+          <button class="btn btn-primary" id="welcome-accept" type="button">Accept</button>
+          <button class="btn btn-ghost-dark" id="welcome-close" type="button">Close</button>
+        </div>
+      </div>
+    </div>
 
     <div id="bulk-label-banner" class="bulk-label-banner" hidden role="status" aria-live="polite">
       <span class="bulk-label-text" id="bulk-label-text">Labelling…</span>
@@ -745,6 +777,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=59"></script>
+    <script src="app.js?v=60"></script>
   </body>
 </html>
