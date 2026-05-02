@@ -3267,9 +3267,13 @@
       try {
         const photo = await processUploadedFile(file);
         photo.propertyId = state.property.id;
-        // Leave the label blank — the user can name the photo from
-        // the lightbox if they want; auto-naming clutters PDFs.
-        if (typeof photo.label !== "string") photo.label = "";
+        // Same labelling rule as captures: seed with "<Category> N"
+        // for real categories, blank for Untagged.
+        if (typeof photo.label !== "string" || !photo.label) {
+          photo.label = isUntaggedGroup(group)
+            ? ""
+            : `${group.name} ${group.photoIds.length + 1}`;
+        }
         state.photos.set(photo.id, photo);
         group.photoIds.push(photo.id);
         newPhotos.push(photo);
@@ -4204,6 +4208,10 @@
     ) || null;
   }
 
+  function isUntaggedGroup(group) {
+    return !!group && (group.name || "").trim().toLowerCase() === "untagged";
+  }
+
   // Pre-flight check before any PDF / ZIP / photo download. Surfaces
   // two issues:
   //   - Photos still in Untagged that need a category.
@@ -4274,9 +4282,15 @@
     if (isRoomPhoto) expandRoom(owner.room);
     for (const photo of photos) {
       photo.propertyId = state.property.id;
-      // Leave the label blank — the user can name it from the
-      // lightbox if they want; auto-naming clutters PDFs.
-      if (typeof photo.label !== "string") photo.label = "";
+      // If a real category is the destination, seed the label with
+      // "<Category> N" so the report has a sensible title. For
+      // Untagged we leave the label blank so the user can write
+      // their own from the lightbox after they file the photo.
+      if (typeof photo.label !== "string" || !photo.label) {
+        photo.label = isUntaggedGroup(group)
+          ? ""
+          : `${group.name} ${group.photoIds.length + 1}`;
+      }
       state.photos.set(photo.id, photo);
       group.photoIds.push(photo.id);
       try {
