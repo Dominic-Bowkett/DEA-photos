@@ -1,7 +1,7 @@
 {
-  "name": "Retrofit Photos",
-  "short_name": "Retrofit Photos",
-  "description": "Stamped and geotagged photo evidence for Domestic Energy Assessors, organised by room.",
+  "name": "DEA Photo Evidence",
+  "short_name": "DEA Photo Evidence",
+  "description": "Stamped and geotagged photo evidence for Domestic Energy Assessors.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -4069,7 +4069,7 @@
       const dt = exifDateTime(photo.takenAt || new Date().toISOString());
       const zeroth = {
         [piexif.ImageIFD.DateTime]: dt,
-        [piexif.ImageIFD.Software]: "Retrofit Photos",
+        [piexif.ImageIFD.Software]: "DEA Photo Evidence",
       };
       const exif = {
         [piexif.ExifIFD.DateTimeOriginal]: dt,
@@ -5872,7 +5872,7 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
 
   function buildHtmlIndex(photoPaths) {
     const meta = state.property.meta || {};
-    const title = state.property.name || meta.address || "Retrofit Photos";
+    const title = state.property.name || meta.address || "DEA Photo Evidence";
 
     // Flatten every photo into a lean data record for the embedded viewer.
     // Groups list their photoIds in display order so filtering keeps the
@@ -6370,7 +6370,7 @@ body:not(.js-ready) .app{display:none}
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <base href="./">
-<title>${escapeHtml(title)} — Retrofit Photos</title>
+<title>${escapeHtml(title)} — DEA Photo Evidence</title>
 <style>${css}</style>
 </head>
 <body>
@@ -6567,7 +6567,7 @@ ${nojsFallback}
     if (numParts > 1) {
       zip.file(
         "README.txt",
-        `Retrofit Photos — originals export\n` +
+        `DEA Photo Evidence — originals export\n` +
           `Part ${partIdx + 1} of ${numParts}\n` +
           `Photos in this archive: ${processed}\n`
       );
@@ -6583,7 +6583,7 @@ ${nojsFallback}
     const result = await deliverBlob(zipBlob, filename, {
       share: plan.share,
       title: numParts > 1 ? `${filename} (part ${partIdx + 1}/${numParts})` : filename,
-      text: `Retrofit Photos — ${plan.propertyName || ""}`.trim(),
+      text: `DEA Photo Evidence — ${plan.propertyName || ""}`.trim(),
     });
     zipBlob = null;
     if (result !== "cancelled") {
@@ -6982,7 +6982,7 @@ ${nojsFallback}
         } else if (numParts > 1) {
           zip.file(
             "README.txt",
-            `Retrofit Photos — originals export\n` +
+            `DEA Photo Evidence — originals export\n` +
               `Part ${partIdx + 1} of ${numParts}\n` +
               `Photos in this archive: ${items.length}\n` +
               `Total photos in the property: ${total}\n`
@@ -7005,7 +7005,7 @@ ${nojsFallback}
         const result = await deliverBlob(zipBlob, filename, {
           share,
           title: partTitle,
-          text: `Retrofit Photos — ${state.property.name || ""}`.trim(),
+          text: `DEA Photo Evidence — ${state.property.name || ""}`.trim(),
         });
         // Drop our refs so the browser can reclaim ~2 × chunk size of
         // memory before the next chunk starts building. On iOS PWA
