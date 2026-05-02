@@ -3973,7 +3973,8 @@
       if (!p) return;
       // Remember whether the user was filing photos from the
       // No-Category-Defined bucket, before the move changes the
-      // owning group.
+      // owning group. Capture the next photo in the current view
+      // so we can land on it after tagging.
       const wasUntaggedView = (() => {
         if (lightbox.sourceId === "all") return false;
         const cur = (state.property.groups || []).find(
@@ -3981,6 +3982,9 @@
         );
         return !!cur && isUntaggedName(cur.name);
       })();
+      const nextInUntagged = wasUntaggedView
+        ? (lightbox.photos[lightbox.index + 1] || lightbox.photos[lightbox.index - 1] || null)
+        : null;
       const moved = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
       persistLightboxPhoto();
       if (moved) {
@@ -3990,14 +3994,17 @@
         const built = buildLightboxSources();
         lightbox.sources = built.sources;
         lightbox.ownersById = built.ownersById;
+        let preferId = null;
         if (wasUntaggedView) {
           // Stay on the No-Category-Defined source so the user can
-          // keep swiping through and filing the remaining photos.
-          // setLightboxSource auto-advances past the just-moved
-          // photo (it's no longer in this source) and closes the
-          // lightbox if the bucket is now empty.
+          // keep filing the remaining photos. Land on the photo
+          // immediately after the one they just tagged so it feels
+          // like a "next" advance rather than jumping to the start.
+          // If the bucket is now empty, fall back to "all".
           if (!built.sources.some((s) => s.id === lightbox.sourceId)) {
             lightbox.sourceId = "all";
+          } else if (nextInUntagged) {
+            preferId = nextInUntagged.id;
           }
         } else {
           // Otherwise, follow the photo to its new home so the user
@@ -4008,9 +4015,10 @@
           } else if (!built.sources.some((s) => s.id === lightbox.sourceId)) {
             lightbox.sourceId = "all";
           }
+          preferId = p.id;
         }
         renderLightboxFilter();
-        setLightboxSource(lightbox.sourceId, wasUntaggedView ? null : p.id);
+        setLightboxSource(lightbox.sourceId, preferId);
         toast("Photo moved to a new category.");
       }
     });
