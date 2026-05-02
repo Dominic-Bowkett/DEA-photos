@@ -466,6 +466,8 @@
     addRoomBtn: document.getElementById("btn-add-room"),
     windows: document.getElementById("windows"),
     addWindowPropertyBtn: document.getElementById("btn-add-window-property"),
+    windowsCard: document.getElementById("windows-card"),
+    windowsHeader: document.getElementById("windows-header"),
     captureTag: document.getElementById("capture-tag"),
     captureTakeBtn: document.getElementById("btn-capture-take"),
     captureUpload: document.getElementById("capture-upload"),
@@ -7653,6 +7655,21 @@ ${nojsFallback}
       } catch (err) {
         console.error(err);
         toast("Couldn't add window.", "err");
+      }
+    });
+  }
+
+  if (els.windowsCard && els.windowsHeader) {
+    const toggleWindowsCard = () => {
+      const open = els.windowsCard.classList.toggle("collapsed");
+      els.windowsHeader.setAttribute("aria-expanded", String(!open));
+    };
+    els.windowsHeader.addEventListener("click", toggleWindowsCard);
+    els.windowsHeader.addEventListener("keydown", (e) => {
+      if (e.target !== els.windowsHeader) return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        toggleWindowsCard();
       }
     });
   }

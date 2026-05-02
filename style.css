@@ -3092,3 +3092,46 @@ body.view-analysis .add-room-row {
   color: var(--accent-ink);
   border-color: var(--accent-border);
 }
+
+/* -------------------- Windows card (top-level) -------------------- */
+.windows-card .windows-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  margin: 0;
+  user-select: none;
+}
+
+.windows-card .windows-header h2 {
+  margin: 0;
+}
+
+.windows-card .windows-chevron {
+  transform: rotate(0deg);
+}
+
+.windows-card.collapsed .windows-chevron {
+  transform: rotate(-90deg);
+}
+
+.windows-card.collapsed .windows-body {
+  display: none;
+}
+
+.windows-card .windows-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 14px;
+}
+
+.windows-card .windows-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.windows-card .add-window-row {
+  margin-top: 6px;
+}

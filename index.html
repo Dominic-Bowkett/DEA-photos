@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=46" />
+    <link rel="stylesheet" href="style.css?v=47" />
   </head>
   <body>
     <header class="app-header">
@@ -170,14 +170,17 @@
 
       <section id="groups" class="groups" aria-label="Photo groups"></section>
 
-      <section class="card windows-card" aria-label="Windows">
-        <div class="rooms-card-header">
-          <h2>Windows</h2>
-          <p class="rooms-card-hint">Add every window in the property. Each entry stands alone — no need to assign it to a room.</p>
+      <section class="card windows-card collapsed" id="windows-card" aria-label="Window measurements">
+        <div class="windows-header" id="windows-header" role="button" tabindex="0" aria-expanded="false" aria-controls="windows-body">
+          <span class="group-chevron windows-chevron" aria-hidden="true">&#x25BE;</span>
+          <h2>Window Measurements (optional)</h2>
         </div>
-        <div id="windows" class="windows-list" aria-label="Windows list"></div>
-        <div class="add-room-row">
-          <button id="btn-add-window-property" class="btn btn-primary-soft" type="button">+ Add window</button>
+        <div class="windows-body" id="windows-body">
+          <p class="rooms-card-hint">Add every window in the property. Each entry stands alone — no need to assign it to a room.</p>
+          <div id="windows" class="windows-list" aria-label="Windows list"></div>
+          <div class="add-room-row add-window-row">
+            <button id="btn-add-window-property" class="btn btn-primary-soft" type="button">+ Add window</button>
+          </div>
         </div>
       </section>
 
@@ -733,6 +736,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=46"></script>
+    <script src="app.js?v=47"></script>
   </body>
 </html>
