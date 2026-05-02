@@ -3960,25 +3960,46 @@
     els.lightboxTag.addEventListener("change", () => {
       const p = currentLightboxPhoto();
       if (!p) return;
+      // Remember whether the user was filing photos from the
+      // No-Category-Defined bucket, before the move changes the
+      // owning group.
+      const wasUntaggedView = (() => {
+        if (lightbox.sourceId === "all") return false;
+        const cur = (state.property.groups || []).find(
+          (g) => `g-${g.id}` === lightbox.sourceId
+        );
+        return !!cur && isUntaggedName(cur.name);
+      })();
       const moved = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
       persistLightboxPhoto();
       if (moved) {
         saveProperty();
         renderGroups();
-        // Rebuild lightbox sources so the Showing dropdown reflects
-        // the photo's new home, then follow the photo there so the
-        // user keeps seeing it after the retag.
+        // Rebuild the source list to reflect the new owner.
         const built = buildLightboxSources();
         lightbox.sources = built.sources;
         lightbox.ownersById = built.ownersById;
-        const newOwnerId = `g-${els.lightboxTag.value}`;
-        if (built.sources.some((s) => s.id === newOwnerId)) {
-          lightbox.sourceId = newOwnerId;
-        } else if (!built.sources.some((s) => s.id === lightbox.sourceId)) {
-          lightbox.sourceId = "all";
+        if (wasUntaggedView) {
+          // Stay on the No-Category-Defined source so the user can
+          // keep swiping through and filing the remaining photos.
+          // setLightboxSource auto-advances past the just-moved
+          // photo (it's no longer in this source) and closes the
+          // lightbox if the bucket is now empty.
+          if (!built.sources.some((s) => s.id === lightbox.sourceId)) {
+            lightbox.sourceId = "all";
+          }
+        } else {
+          // Otherwise, follow the photo to its new home so the user
+          // keeps seeing it after the retag.
+          const newOwnerId = `g-${els.lightboxTag.value}`;
+          if (built.sources.some((s) => s.id === newOwnerId)) {
+            lightbox.sourceId = newOwnerId;
+          } else if (!built.sources.some((s) => s.id === lightbox.sourceId)) {
+            lightbox.sourceId = "all";
+          }
         }
         renderLightboxFilter();
-        setLightboxSource(lightbox.sourceId, p.id);
+        setLightboxSource(lightbox.sourceId, wasUntaggedView ? null : p.id);
         toast("Photo moved to a new category.");
       }
     });
