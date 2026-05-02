@@ -1495,6 +1495,35 @@ input[type="date"]:focus {
   flex: 1;
 }
 
+.tips-hero {
+  /* Slate panel that runs edge-to-edge inside the card so the
+     Energy Trust wordmark (transparent PNG with dark text) reads
+     cleanly. Mirrors the welcome dialog hero. */
+  margin: -16px -16px 14px;
+  padding: 16px;
+  background: var(--primary);
+  border-top-left-radius: var(--radius);
+  border-top-right-radius: var(--radius);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.tips-hero .tips-logo {
+  display: block;
+  height: 36px;
+  width: auto;
+  max-width: 60%;
+  flex: 0 0 auto;
+}
+
+.tips-hero h2 {
+  margin: 0;
+  color: var(--primary-ink);
+  font-size: 1rem;
+  font-weight: 600;
+}
+
 .tips ul {
   margin: 0;
   padding-left: 18px;
