@@ -983,8 +983,12 @@
   // were sub-group renames; now they're top-level too.)
   const LEGACY_RENAMES = {
     "wall thickness": "Walls",
-    roof: "Loft",
   };
+
+  // Default groups that used to ship but are no longer in the new
+  // category list. On load we move their photos into Untagged so the
+  // user can re-categorise them, then drop the empty group.
+  const RETIRED_DEFAULT_GROUPS = new Set(["loft"]);
 
   function migrateDefaults(property, photosMap) {
     if (!property || !Array.isArray(property.groups)) {
@@ -1062,6 +1066,9 @@
     const extElev = property.groups.find(
       (g) => (g.name || "").trim().toLowerCase() === "external elevations"
     );
+    const untaggedGroup = property.groups.find(
+      (g) => (g.name || "").trim().toLowerCase() === "untagged"
+    );
     const survivingGroups = [];
     for (const group of property.groups) {
       const norm = (group.name || "").trim().toLowerCase();
@@ -1077,6 +1084,19 @@
         }
         changed = true;
         continue; // drop the legacy group
+      }
+      // Drop retired default groups (e.g. plain "Loft"). Any photos
+      // get moved into Untagged so the user can re-categorise them.
+      if (RETIRED_DEFAULT_GROUPS.has(norm) && group.protected) {
+        if (untaggedGroup) {
+          for (const pid of group.photoIds || []) {
+            if (!untaggedGroup.photoIds.includes(pid)) {
+              untaggedGroup.photoIds.push(pid);
+            }
+          }
+        }
+        changed = true;
+        continue;
       }
       survivingGroups.push(group);
     }
