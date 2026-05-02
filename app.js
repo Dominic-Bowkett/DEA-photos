@@ -5536,7 +5536,7 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
     doc.setFont("helvetica", "bold");
     doc.setFontSize(22);
     doc.setTextColor(15, 23, 42);
-    doc.text("Photo Evidence Report", margin, coverContentY + 10);
+    doc.text("DEA Photo Evidence Report", margin, coverContentY + 10);
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(11);
