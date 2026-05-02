@@ -537,7 +537,7 @@
     lightboxLabel: document.getElementById("lightbox-label"),
     lightboxLabelAi: document.getElementById("lightbox-label-ai"),
     lightboxBuilding: document.getElementById("lightbox-building"),
-    lightboxTag: document.getElementById("lightbox-tag"),
+    lightboxTags: document.getElementById("lightbox-tags"),
     lightboxDefect: document.getElementById("lightbox-defect"),
     lightboxDelete: document.getElementById("lightbox-delete"),
     toast: document.getElementById("toast"),
@@ -3287,22 +3287,40 @@
     els.lightboxFilter.value = lightbox.sourceId;
   }
 
-  function populateLightboxTagOptions() {
-    if (!els.lightboxTag) return;
-    // Re-populate every time the lightbox opens so the option list
-    // tracks the current property's groups (Untagged + the 23 tag
-    // categories + any custom groups).
-    els.lightboxTag.innerHTML = "";
-    const groups = (state.property && state.property.groups) || [];
+  // Render the lightbox's tag-chip strip for the given photo. Each chip
+  // is a toggle for one top-level group; pressing one adds or removes
+  // the photo from that group's photoIds. The Untagged group is auto-
+  // managed (not shown as a chip) — see syncUntaggedMembership.
+  function renderLightboxTagChips(photo) {
+    if (!els.lightboxTags) return;
+    els.lightboxTags.innerHTML = "";
+    if (!photo || !state.property) return;
+    const groups = state.property.groups || [];
     for (const g of groups) {
-      const opt = document.createElement("option");
-      opt.value = g.id;
-      opt.textContent = g.name;
-      els.lightboxTag.appendChild(opt);
+      if ((g.name || "").trim().toLowerCase() === "untagged") continue;
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "lightbox-tag-chip";
+      chip.dataset.groupId = g.id;
+      chip.textContent = g.name;
+      const on = (g.photoIds || []).includes(photo.id);
+      chip.setAttribute("aria-pressed", String(on));
+      chip.classList.toggle("is-on", on);
+      els.lightboxTags.appendChild(chip);
     }
   }
 
-  // Find which top-level group currently owns a photo (by photoIds).
+  // Find every top-level group that contains this photo.
+  function groupsContainingPhoto(photoId) {
+    if (!state.property) return [];
+    return (state.property.groups || []).filter(
+      (g) => (g.photoIds || []).includes(photoId)
+    );
+  }
+
+  // Find which top-level group "owns" a photo. Returns the first group
+  // that contains it; for photos in multiple groups the order in
+  // state.property.groups decides. Rooms are searched as a fallback.
   function findOwningGroup(photoId) {
     if (!state.property) return null;
     for (const g of state.property.groups || []) {
@@ -3314,21 +3332,41 @@
     return null;
   }
 
-  // Move a photo between top-level groups. No-op if it's already in
-  // the destination. Returns true if the photo moved.
-  function movePhotoBetweenGroups(photoId, targetGroupId) {
+  // Toggle a photo's membership in a top-level group. Returns the new
+  // state (true = now in the group). Auto-syncs the Untagged group.
+  function togglePhotoInGroup(photoId, groupId) {
     if (!state.property) return false;
-    const groups = state.property.groups || [];
-    const target = groups.find((g) => g.id === targetGroupId);
-    if (!target) return false;
-    const owner = findOwningGroup(photoId);
-    if (owner === target) return false;
-    if (owner && Array.isArray(owner.photoIds)) {
-      const i = owner.photoIds.indexOf(photoId);
-      if (i !== -1) owner.photoIds.splice(i, 1);
+    const group = (state.property.groups || []).find((g) => g.id === groupId);
+    if (!group) return false;
+    const i = (group.photoIds || []).indexOf(photoId);
+    if (i !== -1) {
+      group.photoIds.splice(i, 1);
+    } else {
+      if (!Array.isArray(group.photoIds)) group.photoIds = [];
+      group.photoIds.push(photoId);
     }
-    if (!target.photoIds.includes(photoId)) target.photoIds.push(photoId);
-    return true;
+    syncUntaggedMembership(photoId);
+    return i === -1;
+  }
+
+  // Untagged is automatically populated when a photo has no other
+  // group memberships, and emptied when it has any. The Untagged chip
+  // itself is hidden in the lightbox UI; this keeps the data store in
+  // sync after every toggle.
+  function syncUntaggedMembership(photoId) {
+    const untagged = findUntaggedGroup();
+    if (!untagged) return;
+    if (!Array.isArray(untagged.photoIds)) untagged.photoIds = [];
+    const others = (state.property.groups || []).filter(
+      (g) => g !== untagged && (g.photoIds || []).includes(photoId)
+    );
+    const inUntagged = untagged.photoIds.includes(photoId);
+    if (others.length === 0) {
+      if (!inUntagged) untagged.photoIds.push(photoId);
+    } else if (inUntagged) {
+      const i = untagged.photoIds.indexOf(photoId);
+      if (i !== -1) untagged.photoIds.splice(i, 1);
+    }
   }
 
   function setLightboxSource(sourceId, preferPhotoId) {
@@ -3357,7 +3395,6 @@
   }
 
   function openLightbox(group, photo) {
-    populateLightboxTagOptions();
     const built = buildLightboxSources();
     lightbox.sources = built.sources;
     lightbox.ownersById = built.ownersById;
@@ -3407,10 +3444,7 @@
     if (els.lightboxBuilding) {
       els.lightboxBuilding.value = BUILDING_TAGS.includes(p.building) ? p.building : DEFAULT_BUILDING;
     }
-    if (els.lightboxTag) {
-      const owner = findOwningGroup(p.id);
-      if (owner) els.lightboxTag.value = owner.id;
-    }
+    renderLightboxTagChips(p);
     if (els.lightboxDefect) {
       const on = !!p.defect;
       els.lightboxDefect.setAttribute("aria-pressed", String(on));
@@ -3735,19 +3769,18 @@
       persistLightboxPhoto();
     });
   }
-  if (els.lightboxTag) {
-    els.lightboxTag.addEventListener("change", () => {
+  if (els.lightboxTags) {
+    els.lightboxTags.addEventListener("click", (e) => {
+      const chip = e.target.closest(".lightbox-tag-chip");
+      if (!chip || !els.lightboxTags.contains(chip)) return;
       const p = currentLightboxPhoto();
       if (!p) return;
-      const moved = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
+      const groupId = chip.dataset.groupId;
+      togglePhotoInGroup(p.id, groupId);
+      renderLightboxTagChips(p);
       persistLightboxPhoto();
-      if (moved) {
-        saveProperty();
-        // Re-render the by-group view so counts and thumbs reflect
-        // the move; the lightbox stays open on the same photo.
-        renderGroups();
-        toast("Photo moved to a new category.");
-      }
+      saveProperty();
+      renderGroups();
     });
   }
   if (els.lightboxDefect) {

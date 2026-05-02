@@ -242,6 +242,9 @@
 
     <template id="thumb-template">
       <figure class="thumb" draggable="true">
+        <!-- Per-thumb tag bar hidden — building (Main/Ext1...) and the
+             legacy room-tag select are no longer used; categories are
+             managed exclusively from the lightbox.
         <div class="thumb-tagbar">
           <select class="thumb-building" aria-label="Building tag">
             <option value="Main">Main</option>
@@ -251,10 +254,11 @@
             <option value="Ext4">Ext4</option>
           </select>
           <select class="thumb-roomtag" aria-label="Room tag" hidden>
-            <option value="">— Tag —</option>
+            <option value="">&mdash; Tag &mdash;</option>
           </select>
           <span class="thumb-group-hint"></span>
         </div>
+        -->
         <img alt="" />
         <figcaption>
           <div class="thumb-row">
@@ -496,6 +500,9 @@
       <footer class="lightbox-footer">
         <div class="lightbox-caption" id="lightbox-caption"></div>
         <div class="lightbox-controls">
+          <!-- Building dropdown hidden — buildings (Main / Ext1-4) are
+               no longer surfaced; photo.building stays as data and
+               defaults to Main.
           <label class="lightbox-control">
             <span>Building</span>
             <select id="lightbox-building">
@@ -506,10 +513,11 @@
               <option value="Ext4">Ext4</option>
             </select>
           </label>
-          <label class="lightbox-control">
-            <span>Tag</span>
-            <select id="lightbox-tag"></select>
-          </label>
+          -->
+          <div class="lightbox-control lightbox-tags-wrap">
+            <span>Tags</span>
+            <div id="lightbox-tags" class="lightbox-tags" role="group" aria-label="Tags"></div>
+          </div>
           <!-- Lightbox defect chip hidden — uncomment to re-enable.
           <button type="button" id="lightbox-defect" class="lightbox-chip" aria-pressed="false">
             <span class="lightbox-chip-dot" aria-hidden="true"></span>
@@ -518,13 +526,15 @@
           -->
           <button type="button" id="lightbox-delete" class="lightbox-danger" aria-label="Delete photo">Delete</button>
         </div>
+        <!-- AI analysis controls hidden — uncomment to re-enable Claude-driven photo analyses.
         <div class="lightbox-analyse-row">
           <select id="lightbox-analyse-preset" aria-label="Analysis preset">
-            <option value="">Analyse as…</option>
+            <option value="">Analyse as&hellip;</option>
           </select>
           <button type="button" id="lightbox-analyse-run" class="lightbox-analyse-btn">Run analysis</button>
         </div>
         <div class="lightbox-analyses" id="lightbox-analyses" aria-label="Photo analyses"></div>
+        -->
       </footer>
     </div>
 
