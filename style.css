@@ -822,12 +822,30 @@ input[type="date"]:focus {
   display: none;
 }
 
+.lightbox-brand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  padding-top: calc(10px + env(safe-area-inset-top));
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.lightbox-logo {
+  display: block;
+  height: 28px;
+  width: auto;
+  flex: 0 0 auto;
+}
+
 .lightbox-header {
   display: flex;
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  padding-top: calc(10px + env(safe-area-inset-top));
   background: #ffffff;
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
@@ -894,9 +912,9 @@ input[type="date"]:focus {
 }
 
 .lightbox-label-input:focus {
-  outline: 2px solid var(--accent);
-  outline-offset: 1px;
+  outline: none;
   border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-soft);
 }
 
 .lightbox-stage {
@@ -962,6 +980,15 @@ input[type="date"]:focus {
   font-size: 1.4rem;
   width: 40px;
   height: 40px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--primary-ink);
+  border-radius: 999px;
+  flex: 0 0 auto;
+}
+
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
 }
 
 .lightbox-prev,
@@ -979,12 +1006,13 @@ input[type="date"]:focus {
 .lightbox-next { right: 14px; }
 
 .lightbox-footer {
-  padding: 12px 14px calc(14px + env(safe-area-inset-bottom));
+  padding: 14px 16px calc(16px + env(safe-area-inset-bottom));
   border-top: 1px solid var(--line);
   background: #ffffff;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  box-shadow: 0 -1px 0 rgba(15, 23, 42, 0.04);
 }
 
 .lightbox-caption {
@@ -992,11 +1020,14 @@ input[type="date"]:focus {
   color: var(--muted);
   text-align: center;
   min-height: 1.2em;
+  padding: 8px 12px;
+  background: var(--accent-softer);
+  border-radius: 8px;
 }
 
 .lightbox-controls {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
   align-items: flex-end;
   justify-content: center;

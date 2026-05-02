@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=75" />
+    <link rel="stylesheet" href="style.css?v=76" />
   </head>
   <body>
     <header class="app-header">
@@ -565,13 +565,16 @@
     </button>
 
     <div id="lightbox" class="lightbox" hidden aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photo editor">
+      <div class="lightbox-brand">
+        <img class="lightbox-logo" src="logo.png?v=2" alt="Energy Trust" />
+        <button class="lightbox-btn lightbox-close" type="button" aria-label="Close">&times;</button>
+      </div>
       <header class="lightbox-header">
         <label class="lightbox-filter-wrap">
           <span class="sr-only">Filter photos</span>
           <select id="lightbox-filter" aria-label="Filter photos"></select>
         </label>
         <span class="lightbox-counter" id="lightbox-counter"></span>
-        <button class="lightbox-btn lightbox-close" type="button" aria-label="Close">&times;</button>
       </header>
       <div class="lightbox-label-bar">
         <input type="text" id="lightbox-label" class="lightbox-label-input" placeholder="Photo label" aria-label="Photo label" />
