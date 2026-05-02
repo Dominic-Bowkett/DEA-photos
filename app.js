@@ -3863,11 +3863,13 @@
   };
 
   // Accepts either a single group object, an array/Set of group IDs, or
-  // null. The camera HUD shows a chip strip the user can edit during
-  // the session — on Done, captures are committed to every selected
-  // group (or to Untagged if none).
-  async function openCamera(target) {
+  // null. By default the camera HUD hides its tag chip strip — the
+  // destination has already been picked by whichever button opened the
+  // camera. The top Capture card passes { hudTagPicker: true } so the
+  // chips stay editable during a multi-tag shoot.
+  async function openCamera(target, options) {
     camera.selectedGroupIds = normalizeToGroupIdSet(target);
+    camera.hudTagPicker = !!(options && options.hudTagPicker);
     camera.buffer = [];
     renderCameraTagChips();
     updateCameraCount();
@@ -4158,7 +4160,15 @@
   }
 
   function renderCameraTagChips() {
-    renderTagChipStrip(camera.els.tagsContainer, camera.selectedGroupIds);
+    const container = camera.els.tagsContainer;
+    if (!container) return;
+    if (!camera.hudTagPicker) {
+      container.hidden = true;
+      container.innerHTML = "";
+      return;
+    }
+    container.hidden = false;
+    renderTagChipStrip(container, camera.selectedGroupIds);
   }
 
   function findUntaggedGroup() {
@@ -7800,7 +7810,7 @@ ${nojsFallback}
   if (els.captureTakeBtn) {
     els.captureTakeBtn.addEventListener("click", () => {
       if (!state.property) return;
-      openCamera(state.captureSelectedGroupIds);
+      openCamera(state.captureSelectedGroupIds, { hudTagPicker: true });
     });
   }
 
