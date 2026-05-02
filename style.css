@@ -846,14 +846,25 @@ input[type="date"]:focus {
   align-items: center;
   gap: 12px;
   padding: 10px 14px;
-  background: #ffffff;
-  border-bottom: 1px solid var(--line);
-  flex-wrap: wrap;
+  background: var(--accent);
+  border-bottom: 1px solid var(--accent-border);
+  flex-wrap: nowrap;
 }
 
 .lightbox-filter-wrap {
-  flex: 1 1 180px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1 1 auto;
   min-width: 0;
+}
+
+.lightbox-filter-label {
+  flex: 0 0 auto;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  font-size: 0.85rem;
+  color: var(--accent-ink);
 }
 
 .lightbox-filter-wrap select {
@@ -873,9 +884,11 @@ input[type="date"]:focus {
 }
 
 .lightbox-counter {
-  font-size: 0.82rem;
-  color: var(--muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--accent-ink);
   white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 /* Full-width label bar sitting between the filter header and the
