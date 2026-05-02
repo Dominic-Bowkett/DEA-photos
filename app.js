@@ -4274,7 +4274,9 @@
     if (isRoomPhoto) expandRoom(owner.room);
     for (const photo of photos) {
       photo.propertyId = state.property.id;
-      photo.label = `${group.name} — ${group.photoIds.length + 1}`;
+      // Leave the label blank — the user can name it from the
+      // lightbox if they want; auto-naming clutters PDFs.
+      if (typeof photo.label !== "string") photo.label = "";
       state.photos.set(photo.id, photo);
       group.photoIds.push(photo.id);
       try {

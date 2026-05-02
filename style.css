@@ -505,7 +505,7 @@ input[type="date"]:focus {
 
 .group-header {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start;
   align-items: center;
   gap: 10px;
   margin: 0;
@@ -514,6 +514,7 @@ input[type="date"]:focus {
   user-select: none;
   border-radius: 8px;
   padding: 0;
+  width: 100%;
 }
 
 .group-header:focus-visible {
@@ -552,7 +553,7 @@ input[type="date"]:focus {
   gap: 8px;
   flex-wrap: wrap;
   min-width: 0;
-  flex: 0 1 auto;
+  flex: 1 1 auto;
 }
 
 .group-header .group-title {
@@ -1835,9 +1836,10 @@ input[type="date"]:focus {
 .room-header,
 .group-header {
   position: relative;
-  /* Reserve space on the right so the absolutely-positioned toggle
-     never overlaps the title or the action buttons. */
-  padding-right: 56px;
+  /* The legacy accordion toggle was absolutely-positioned and ate
+     56px on the right; it's gone, so the header now uses its full
+     width and the N/A button sits flush with the card edge. */
+  padding-right: 0;
 }
 
 .accordion-toggle {
