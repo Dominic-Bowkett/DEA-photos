@@ -152,10 +152,21 @@
 
       <section id="groups" class="groups" aria-label="Photo groups"></section>
 
+      <section class="card windows-card" aria-label="Windows">
+        <div class="rooms-card-header">
+          <h2>Windows</h2>
+          <p class="rooms-card-hint">Add every window in the property. Each entry stands alone — no need to assign it to a room.</p>
+        </div>
+        <div id="windows" class="windows-list" aria-label="Windows list"></div>
+        <div class="add-room-row">
+          <button id="btn-add-window-property" class="btn btn-primary-soft" type="button">+ Add window</button>
+        </div>
+      </section>
+
       <section class="card rooms-card" aria-label="Rooms">
         <div class="rooms-card-header">
           <h2>Rooms</h2>
-          <p class="rooms-card-hint">Add a room for each space you photograph, then tag each photo (Room, Undercuts, Windows, Lighting, Heating, Secondary Heating, Ventilation, Renewables, Meters, Other).</p>
+          <p class="rooms-card-hint">Add a room for each space you photograph, then tag each photo (Room, Undercuts, Lighting, Heating, Secondary Heating, Ventilation, Renewables, Meters, Other).</p>
         </div>
         <section id="rooms" class="rooms" aria-label="Rooms list"></section>
         <div class="add-room-row">
@@ -334,10 +345,12 @@
               <input type="number" class="room-count-input" data-count="ventilation" data-key="dmev" min="0" max="999" step="1" maxlength="3" inputmode="numeric" />
             </label>
           </fieldset>
+          <!-- Per-room windows stack hidden — windows now live in a top-level Windows section.
           <div class="room-windows-stack" aria-label="Windows">
             <div class="room-windows-stack-list"></div>
             <button type="button" class="btn btn-primary-soft btn-add-window">+ Add window</button>
           </div>
+          -->
           <label class="room-notes">
             <span class="room-counts-legend">Notes</span>
             <textarea class="room-notes-input" rows="3" placeholder="Free-text notes for this room…" spellcheck="true"></textarea>
@@ -412,10 +425,12 @@
             <span class="room-windows-label">Height</span>
             <input type="text" class="room-windows-height" inputmode="decimal" placeholder="e.g. 1.500 m" />
           </label>
+          <!-- Laser-measurer capture hidden — uncomment to re-enable.
           <button type="button" class="btn btn-primary-soft btn-capture-laser" title="Take a photo of the laser measurer's screen — width = longest reading, height = shortest">
-            <span aria-hidden="true">📷</span>
+            <span aria-hidden="true">&#x1F4F7;</span>
             <span>Capture from laser</span>
           </button>
+          -->
         </div>
       </fieldset>
     </template>

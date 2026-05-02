@@ -9,6 +9,7 @@
 
   const DEFAULT_GROUPS = [
     { name: "External Elevations" },
+    { name: "Windows" },
     { name: "Loft" },
   ];
 
@@ -17,7 +18,6 @@
   // and stamp each photo with the mapped tag so the information survives.
   const LEGACY_GROUP_TO_TAG = {
     "meters": "Meters",
-    "windows": "Windows",
     "doors": "Other",
     "conservatory": "Other",
     "renewables": "Renewables",
@@ -455,6 +455,8 @@
     roomTpl: document.getElementById("room-template"),
     newRoomType: document.getElementById("new-room-type"),
     addRoomBtn: document.getElementById("btn-add-room"),
+    windows: document.getElementById("windows"),
+    addWindowPropertyBtn: document.getElementById("btn-add-window-property"),
     groupTpl: document.getElementById("group-template"),
     thumbTpl: document.getElementById("thumb-template"),
     addGroupName: null,
@@ -1074,8 +1076,9 @@
     const orderKey = (g) => {
       const n = (g.name || "").trim().toLowerCase();
       if (n === "external elevations") return 0;
-      if (n === "loft") return 1;
-      return 2;
+      if (n === "windows") return 1;
+      if (n === "loft") return 2;
+      return 3;
     };
     const sortedGroups = property.groups
       .map((g, i) => ({ g, i }))
@@ -1108,6 +1111,7 @@
       },
       groups: makeDefaultGroups(),
       rooms: [],
+      windows: [],
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -1127,7 +1131,7 @@
       chimneys: { open: 0, blocked: 0 },
       flues: { open: 0, closed: 0, boiler: 0, other: 0 },
       ventilation: { trickle: 0, core: 0, iev: 0, dmev: 0 },
-      windows: [makeNewWindow()],
+      windows: [],
       notes: "",
     };
   }
@@ -1274,6 +1278,19 @@
       changed = true;
     }
     for (const w of room.windows) {
+      if (normalizeOneWindow(w)) changed = true;
+    }
+    return changed;
+  }
+
+  function normalizePropertyWindows(property) {
+    if (!property) return false;
+    let changed = false;
+    if (!Array.isArray(property.windows)) {
+      property.windows = [];
+      changed = true;
+    }
+    for (const w of property.windows) {
       if (normalizeOneWindow(w)) changed = true;
     }
     return changed;
@@ -1516,11 +1533,16 @@
       saveProperty();
     }
 
+    if (normalizePropertyWindows(state.property)) {
+      saveProperty();
+    }
+
     // Drop any laser-capture photos that older builds left in the room.
     cleanupLegacyLaserCaptures();
 
     initExpandedForProperty();
     renderMeta();
+    renderWindows();
     renderRooms();
     renderGroups();
     renderPropertySelect();
@@ -2081,6 +2103,24 @@
     renderTotals();
   }
 
+  function renderWindows() {
+    if (!els.windows) return;
+    normalizePropertyWindows(state.property);
+    els.windows.__rerender = renderWindows;
+    const list = (state.property && state.property.windows) || [];
+    els.windows.innerHTML = "";
+    if (!list.length) {
+      const empty = document.createElement("p");
+      empty.className = "rooms-empty";
+      empty.textContent = "No windows yet — tap Add window to record one.";
+      els.windows.appendChild(empty);
+      return;
+    }
+    list.forEach((win, idx) => {
+      els.windows.appendChild(buildWindowFieldset(null, win, idx));
+    });
+  }
+
   // Recompute the Totals card from state.property.rooms. Cheap so we
   // call it any time a relevant input changes; the lookup is a single
   // pass and the DOM writes are six numbers.
@@ -2289,7 +2329,10 @@
   }
 
   function startWindowPhotoCapture(room, win) {
-    camera.pendingWindowPhoto = { roomId: room.id, windowId: win.id };
+    camera.pendingWindowPhoto = {
+      roomId: room ? room.id : null,
+      windowId: win.id,
+    };
     // Kick off the compass watcher (with iOS permission if needed)
     // before opening the camera. If permission is denied we still take
     // the photo, just without auto-orientation.
@@ -2300,9 +2343,26 @@
     }).catch((err) => {
       console.warn("compass watch failed", err);
     });
-    openCamera(room);
+    // Property-level windows commit their photos to the top-level Windows
+    // photo group (auto-created by makeDefaultGroups / migrateDefaults).
+    const target = room || findWindowsGroup();
+    if (!target) {
+      toast("No Windows group available — try reloading the page.", "err");
+      return;
+    }
+    openCamera(target);
   }
 
+  function findWindowsGroup() {
+    if (!state.property) return null;
+    return (state.property.groups || []).find(
+      (g) => (g.name || "").trim().toLowerCase() === "windows"
+    ) || null;
+  }
+
+  // Build a window-fieldset DOM node bound to `win`. When `room` is null,
+  // the fieldset edits the top-level property.windows array (and looks up
+  // the surrounding container by .windows-list / __rerender).
   function buildWindowFieldset(room, win, idx) {
     const tpl = document.getElementById("room-window-template");
     const node = tpl.content.firstElementChild.cloneNode(true);
@@ -2315,11 +2375,13 @@
     if (removeBtn) {
       removeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
-        const i = room.windows.findIndex((w) => w.id === win.id);
+        const list = room ? room.windows : (state.property && state.property.windows);
+        if (!Array.isArray(list)) return;
+        const i = list.findIndex((w) => w.id === win.id);
         if (i === -1) return;
-        room.windows.splice(i, 1);
+        list.splice(i, 1);
         saveProperty();
-        const stack = node.closest(".room-windows-stack");
+        const stack = node.closest(".room-windows-stack, .windows-list");
         if (stack && typeof stack.__rerender === "function") stack.__rerender();
       });
     }
@@ -2463,6 +2525,7 @@
     if (captureBtn) {
       captureBtn.addEventListener("click", (e) => {
         e.stopPropagation();
+        if (!room) return;
         startLaserCapture(room, win);
       });
     }
@@ -2669,49 +2732,7 @@
       input.addEventListener("click", (e) => e.stopPropagation());
     });
 
-    // ----- Windows -----
-    normalizeRoomWindows(room);
-    const winStack = node.querySelector(".room-windows-stack");
-    const winList = winStack ? winStack.querySelector(".room-windows-stack-list") : null;
-    const addWindowBtn = winStack ? winStack.querySelector(".btn-add-window") : null;
-    if (winList && addWindowBtn) {
-      const renderWindows = () => {
-        winList.innerHTML = "";
-        room.windows.forEach((win, idx) => {
-          winList.appendChild(buildWindowFieldset(room, win, idx));
-        });
-      };
-      renderWindows();
-      // Re-rendering callback so child fieldsets can ask the parent to
-      // refresh after add / remove without each one wiring it up itself.
-      winStack.__rerender = renderWindows;
-      addWindowBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        // Prefer the last window already in this room as the seed —
-        // that's the "last window entered" the user is most likely
-        // copying. Fall back to the property-wide remembered defaults.
-        // Type / Age / Frame / Glazing gap copy across; Orientation
-        // and the actual measurements always start blank.
-        const lastInRoom = room.windows[room.windows.length - 1];
-        const source = lastInRoom || lastWindowDefaults();
-        room.windows.push(
-          makeNewWindow(
-            source
-              ? {
-                  type: source.type,
-                  age: source.age,
-                  gap: source.gap,
-                  frame: source.frame,
-                  roofWindow: source.roofWindow === true,
-                }
-              : {}
-          )
-        );
-        normalizeRoomWindows(room);
-        renderWindows();
-        saveProperty();
-      });
-    }
+    // Windows live in their own top-level section now (see renderWindows).
 
     // ----- Notes -----
     normalizeRoomNotes(room);
@@ -2755,6 +2776,31 @@
     updateRoomCount(room);
   }
 
+  function addPropertyWindow() {
+    if (!state.property) return;
+    if (!Array.isArray(state.property.windows)) state.property.windows = [];
+    const list = state.property.windows;
+    const lastInList = list[list.length - 1];
+    const source = lastInList || lastWindowDefaults();
+    const win = makeNewWindow(
+      source
+        ? {
+            type: source.type,
+            age: source.age,
+            gap: source.gap,
+            frame: source.frame,
+            roofWindow: source.roofWindow === true,
+          }
+        : {}
+    );
+    list.push(win);
+    normalizePropertyWindows(state.property);
+    renderWindows();
+    saveProperty();
+    const node = els.windows && els.windows.querySelector(`[data-window-id="${win.id}"]`);
+    if (node) node.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
   function addRoomFromPreset(type) {
     const room = makeRoom(type);
     // Auto-number duplicates so names stay distinct (e.g. "Bedroom 2").
@@ -2762,14 +2808,6 @@
       (r) => r.roomType === room.roomType
     ).length;
     if (existingSame > 0) room.name = `${room.roomType} ${existingSame + 1}`;
-    // Seed the room's first window from the most recently entered
-    // window data so the assessor doesn't repeat themselves on every
-    // room. Orientation and the actual measurements (width / height)
-    // deliberately reset — each window is on a different wall and
-    // has its own size.
-    const seed = seedFromDefaults();
-    if (seed) room.windows = [seed];
-    normalizeRoomWindows(room);
     if (!Array.isArray(state.property.rooms)) state.property.rooms = [];
     state.property.rooms.push(room);
     state.expanded.add(room.id);
@@ -3841,16 +3879,23 @@
 
   function applyWindowPhotoOrientation(target, heading) {
     if (!heading || !Number.isFinite(heading)) return;
-    const room = (state.property && state.property.rooms || []).find((r) => r.id === target.roomId);
-    if (!room) return;
-    const win = (room.windows || []).find((w) => w.id === target.windowId);
+    let win = null;
+    let roomScope = "";
+    if (target.roomId) {
+      const room = (state.property && state.property.rooms || []).find((r) => r.id === target.roomId);
+      if (!room) return;
+      win = (room.windows || []).find((w) => w.id === target.windowId);
+      if (win) roomScope = `[data-room-id="${room.id}"] `;
+    } else {
+      win = (state.property && state.property.windows || []).find((w) => w.id === target.windowId);
+    }
     if (!win) return;
     const point = compassHeadingToOrientation(heading);
     win.orientation = point;
     normalizeOneWindow(win);
     saveProperty();
     const sel = document.querySelector(
-      `[data-room-id="${room.id}"] [data-window-id="${win.id}"] .room-windows-orientation`
+      `${roomScope}[data-window-id="${win.id}"] .room-windows-orientation`
     );
     if (sel) sel.value = point;
     toast(`Orientation set to ${point} (${Math.round(heading)}°).`);
@@ -4872,7 +4917,6 @@
   // -------------------- Window schedule (shared by PDF + ZIP) --------------------
   const WINDOW_SCHEDULE_COLUMNS = [
     { key: "no", label: "No." },
-    { key: "room", label: "Room" },
     { key: "windowLabel", label: "Window" },
     { key: "roof", label: "Roof" },
     { key: "type", label: "Type" },
@@ -4885,48 +4929,19 @@
   ];
 
   function buildWindowScheduleRows() {
-    const rooms = (state.property && state.property.rooms) || [];
-    const rows = [];
-    let runningNo = 0;
-    for (const room of rooms) {
-      const wins = Array.isArray(room.windows) ? room.windows : [];
-      if (!wins.length) {
-        // Surface rooms with no recorded windows so the schedule still
-        // shows them. Empty cells render as "—". The running counter
-        // doesn't advance here — placeholder rows aren't real windows.
-        rows.push({
-          no: "",
-          room: room.name || room.roomType || "Room",
-          habitability: room.habitability || "",
-          windowLabel: "—",
-          roof: "",
-          type: "", age: "", orientation: "",
-          frame: "", gap: "", width: "", height: "",
-        });
-        continue;
-      }
-      wins.forEach((w, idx) => {
-        runningNo += 1;
-        rows.push({
-          no: String(runningNo),
-          room: room.name || room.roomType || "Room",
-          habitability: room.habitability || "",
-          // Always number windows by their position in the array, which
-          // is also their addition order. Single-window rooms still
-          // read "Window 1" so the column has consistent values.
-          windowLabel: `Window ${idx + 1}`,
-          roof: w.roofWindow === true ? "Yes" : "",
-          type: w.type || "",
-          age: w.age || "",
-          orientation: w.orientation || "",
-          frame: w.frame || "",
-          gap: w.gap || "",
-          width: w.width || "",
-          height: w.height || "",
-        });
-      });
-    }
-    return rows;
+    const wins = (state.property && state.property.windows) || [];
+    return wins.map((w, idx) => ({
+      no: String(idx + 1),
+      windowLabel: `Window ${idx + 1}`,
+      roof: w.roofWindow === true ? "Yes" : "",
+      type: w.type || "",
+      age: w.age || "",
+      orientation: w.orientation || "",
+      frame: w.frame || "",
+      gap: w.gap || "",
+      width: w.width || "",
+      height: w.height || "",
+    }));
   }
 
   function buildWindowMeasurementsHtml() {
@@ -4944,7 +4959,7 @@
     ).join("");
     const tbody = rows.length
       ? rows.map((r) => `<tr>${cells(r)}</tr>`).join("")
-      : `<tr><td colspan="${WINDOW_SCHEDULE_COLUMNS.length}" class="empty">No rooms recorded.</td></tr>`;
+      : `<tr><td colspan="${WINDOW_SCHEDULE_COLUMNS.length}" class="empty">No windows recorded.</td></tr>`;
     return `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8" />
@@ -5379,14 +5394,13 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
       doc.line(margin, margin + 12, pageW - margin, margin + 12);
       doc.setLineWidth(0.2);
 
-      // Layout: 8 columns, 1st column (Room) gets the most space.
       const cols = WINDOW_SCHEDULE_COLUMNS;
       const tableLeft = margin;
       const tableRight = pageW - margin;
       const tableW = tableRight - tableLeft;
-      // Weights for: No. | Room | Window | Roof | Type | Age |
+      // Weights for: No. | Window | Roof | Type | Age |
       //              Orientation | Frame | Gap | Width | Height.
-      const colWeights = [0.6, 2.2, 1.1, 0.7, 1.1, 1.3, 1.6, 1.2, 1.2, 1.4, 1.4];
+      const colWeights = [0.6, 1.4, 0.7, 1.1, 1.3, 1.6, 1.2, 1.2, 1.4, 1.4];
       const totalWeight = colWeights.reduce((a, b) => a + b, 0);
       const colWidths = colWeights.map((w) => (w / totalWeight) * tableW);
       const colX = [tableLeft];
@@ -7466,6 +7480,18 @@ ${nojsFallback}
       } catch (err) {
         console.error(err);
         toast("Couldn't add room.", "err");
+      }
+    });
+  }
+
+  if (els.addWindowPropertyBtn) {
+    els.addWindowPropertyBtn.addEventListener("click", () => {
+      if (!state.property) return;
+      try {
+        addPropertyWindow();
+      } catch (err) {
+        console.error(err);
+        toast("Couldn't add window.", "err");
       }
     });
   }
