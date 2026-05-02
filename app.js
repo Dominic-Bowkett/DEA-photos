@@ -8223,7 +8223,18 @@ ${nojsFallback}
     }
     autoRequestGps();
     maybeShowWelcome();
+    registerServiceWorker();
   })();
+
+  // Register the minimal service worker. This is what makes the
+  // install prompt available on Chrome / Edge — without a SW the
+  // `beforeinstallprompt` event never fires.
+  function registerServiceWorker() {
+    if (!("serviceWorker" in navigator)) return;
+    navigator.serviceWorker.register("sw.js").catch((err) => {
+      console.warn("Service worker registration failed", err);
+    });
+  }
 
   // First-load welcome dialog. Accept persists a flag in localStorage
   // so it doesn't show again; Close just dismisses for this session.
@@ -8245,43 +8256,36 @@ ${nojsFallback}
     }
     const dialog = document.getElementById("welcome-dialog");
     const acceptBtn = document.getElementById("welcome-accept");
-    const closeBtn = document.getElementById("welcome-close");
-    const backdrop = document.getElementById("welcome-backdrop");
-    if (!dialog || !acceptBtn || !closeBtn) return;
+    if (!dialog || !acceptBtn) return;
     dialog.hidden = false;
     dialog.setAttribute("aria-hidden", "false");
-    const dismiss = (persist) => {
+    const dismiss = () => {
       dialog.hidden = true;
       dialog.setAttribute("aria-hidden", "true");
-      if (persist) {
-        try {
-          localStorage.setItem(WELCOME_ACCEPTED_KEY, "1");
-        } catch (_) {}
-      }
+      try {
+        localStorage.setItem(WELCOME_ACCEPTED_KEY, "1");
+      } catch (_) {}
     };
-    acceptBtn.addEventListener("click", () => dismiss(true));
-    closeBtn.addEventListener("click", () => dismiss(false));
-    if (backdrop) backdrop.addEventListener("click", () => dismiss(false));
+    acceptBtn.addEventListener("click", dismiss);
 
     const installBtn = document.getElementById("welcome-install-btn");
     const installHelp = document.getElementById("welcome-install-help");
     if (installBtn) {
       installBtn.addEventListener("click", async () => {
+        // Always reveal the instructions panel — useful on iOS where
+        // there's no native prompt available, and as guidance on
+        // Android while the native dialog runs.
+        if (installHelp) installHelp.hidden = false;
         if (deferredInstallPrompt) {
           try {
             deferredInstallPrompt.prompt();
             const { outcome } = await deferredInstallPrompt.userChoice;
             deferredInstallPrompt = null;
-            if (outcome === "accepted") {
-              dismiss(true);
-              return;
-            }
+            if (outcome === "accepted") dismiss();
           } catch (err) {
             console.warn("install prompt failed", err);
           }
         }
-        // Reveal the manual instructions (iOS Safari, etc.).
-        if (installHelp) installHelp.hidden = false;
       });
     }
   }
