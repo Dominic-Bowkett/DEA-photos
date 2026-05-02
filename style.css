@@ -851,15 +851,35 @@ input[type="date"]:focus {
   flex-wrap: nowrap;
 }
 
-/* When the Showing row sits at the bottom of the footer (instead
-   of immediately under the brand bar) we want a top border and
-   rounded corners so it reads as one card with the rest of the
-   footer. */
+/* When the Showing row sits at the bottom of the footer it goes
+   full-bleed against the slate brand colour to bookend the
+   lightbox (slate brand at the top, slate Showing at the bottom).
+   Negative margin pulls it past the footer padding to hit the
+   card's edges. */
 .lightbox-header-bottom {
-  border-top: 1px solid var(--accent-border);
+  background: var(--primary);
+  color: var(--primary-ink);
+  border-top: 1px solid rgba(0, 0, 0, 0.25);
   border-bottom: none;
-  border-radius: 8px;
-  padding: 8px 12px;
+  border-radius: 0;
+  padding: 12px 16px;
+  margin: 14px -16px calc(-16px - env(safe-area-inset-bottom));
+}
+
+.lightbox-header-bottom .lightbox-filter-label,
+.lightbox-header-bottom .lightbox-counter {
+  color: var(--primary-ink);
+}
+
+.lightbox-header-bottom .lightbox-filter-wrap select {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--primary-ink);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.lightbox-header-bottom .lightbox-filter-wrap select option {
+  color: var(--ink);
+  background: #ffffff;
 }
 
 .lightbox-filter-wrap {
