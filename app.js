@@ -9,29 +9,28 @@
 
   const DEFAULT_GROUPS = [
     { name: "Untagged" },
-    { name: "Floorplan" },
     { name: "External Elevations" },
     { name: "Wall Construction" },
     { name: "Roof Construction" },
     { name: "Loft Space Access" },
     { name: "Loft Insulation" },
     { name: "Roof Rooms" },
-    { name: "Openings" },
-    { name: "Corridor / Stairwell" },
     { name: "Primary Heating System" },
-    { name: "Secondary Heating System" },
     { name: "Heating System Controls" },
+    { name: "Secondary Heating System" },
     { name: "Hot Water Cylinder" },
-    { name: "Hot Water Cylinder Thermostat" },
+    { name: "Openings" },
+    { name: "Light Fittings" },
+    { name: "Ventilation" },
+    { name: "Corridor / Stairwell" },
     { name: "Shower / Bath" },
     { name: "Electricity Meter" },
     { name: "Gas Meter" },
     { name: "Heating Fuel" },
     { name: "Conservatory" },
-    { name: "Light Fittings" },
-    { name: "Ventilation" },
     { name: "Renewables" },
     { name: "Additional Evidence" },
+    { name: "Floorplan" },
   ];
 
   // Legacy default-group names that used to exist but have been collapsed
@@ -988,7 +987,10 @@
   // Default groups that used to ship but are no longer in the new
   // category list. On load we move their photos into Untagged so the
   // user can re-categorise them, then drop the empty group.
-  const RETIRED_DEFAULT_GROUPS = new Set(["loft"]);
+  const RETIRED_DEFAULT_GROUPS = new Set([
+    "loft",
+    "hot water cylinder thermostat",
+  ]);
 
   function migrateDefaults(property, photosMap) {
     if (!property || !Array.isArray(property.groups)) {
