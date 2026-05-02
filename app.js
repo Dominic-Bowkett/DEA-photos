@@ -3493,9 +3493,18 @@
   function renderLightboxFilter() {
     if (!els.lightboxFilter) return;
     els.lightboxFilter.innerHTML = "";
+    // Total = unique photoIds across every source. A photo can live
+    // in more than one group (multi-tag), so we de-dupe before
+    // counting; that matches the de-duped list setLightboxSource
+    // assembles when "all" is selected.
+    const seen = new Set();
+    for (const s of lightbox.sources) {
+      for (const p of s.photos) seen.add(p.id);
+    }
+    const allCount = seen.size;
     const optAll = document.createElement("option");
     optAll.value = "all";
-    optAll.textContent = `All photos (${lightbox.photos && lightbox.sourceId === "all" ? lightbox.photos.length : state.photos.size})`;
+    optAll.textContent = `All photos (${allCount})`;
     els.lightboxFilter.appendChild(optAll);
     for (const s of lightbox.sources) {
       const opt = document.createElement("option");
