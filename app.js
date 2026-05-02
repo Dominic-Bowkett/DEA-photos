@@ -514,8 +514,7 @@
     exportPhotosHelp: document.getElementById("export-photos-help"),
     pdfLayoutDialog: document.getElementById("pdf-layout-dialog"),
     pdfLayoutBackdrop: document.getElementById("pdf-layout-backdrop"),
-    pdfLayoutGroupBtn: document.getElementById("pdf-layout-group"),
-    pdfLayoutTagBtn: document.getElementById("pdf-layout-tag"),
+    pdfLayoutDownloadBtn: document.getElementById("pdf-layout-download"),
     pdfIncludeAnalysis: document.getElementById("pdf-include-analysis"),
     pdfShare: document.getElementById("pdf-share"),
     pdfShareToggleWrap: document.getElementById("pdf-share-toggle-wrap"),
@@ -7797,18 +7796,16 @@ ${nojsFallback}
     els.pdfShareToggleWrap.hidden = false;
     els.pdfShare.checked = false;
   }
-  els.pdfLayoutGroupBtn.addEventListener("click", () => {
-    const includeAnalysis = pdfIncludeAnalysis();
-    const share = pdfShareWanted();
-    closePdfLayoutDialog();
-    exportPdf({ layout: "group", includeAnalysis, share });
-  });
-  els.pdfLayoutTagBtn.addEventListener("click", () => {
-    const includeAnalysis = pdfIncludeAnalysis();
-    const share = pdfShareWanted();
-    closePdfLayoutDialog();
-    exportPdf({ layout: "tag", includeAnalysis, share });
-  });
+  if (els.pdfLayoutDownloadBtn) {
+    els.pdfLayoutDownloadBtn.addEventListener("click", () => {
+      const includeAnalysis = pdfIncludeAnalysis();
+      const share = pdfShareWanted();
+      closePdfLayoutDialog();
+      // Layout defaults to "tag" (by-category) — the only layout
+      // surfaced in the dialog now.
+      exportPdf({ layout: "tag", includeAnalysis, share });
+    });
+  }
   document.addEventListener("keydown", (e) => {
     if (!els.pdfLayoutDialog.hidden && e.key === "Escape") {
       e.preventDefault();

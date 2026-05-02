@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=56" />
+    <link rel="stylesheet" href="style.css?v=57" />
   </head>
   <body>
     <header class="app-header">
@@ -569,14 +569,11 @@
           <span>Share via system (Save to Drive / Files)</span>
         </label>
         <div class="dialog-actions">
-          <button class="btn btn-primary" id="pdf-layout-group" type="button">By group</button>
-          <button class="btn" id="pdf-layout-tag" type="button">By Tag</button>
+          <button class="btn btn-primary" id="pdf-layout-download" type="button">Download</button>
         </div>
         <p class="dialog-help">
-          <strong>By group</strong> prints photos category by category in the
-          same order as the app — Floorplan, External Elevations, Wall
-          Construction and so on. <strong>By Tag</strong> uses a flatter
-          layout that groups every photo by its assigned category. Tick
+          The PDF lists photos under each category — Floorplan, External
+          Elevations, Wall Construction and so on. Tick
           <em>Share via system</em> to push the PDF straight to Drive,
           Files, or any installed app via the OS share sheet — handy on iOS
           where direct downloads can be unreliable for large files.
@@ -748,6 +745,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=56"></script>
+    <script src="app.js?v=57"></script>
   </body>
 </html>
