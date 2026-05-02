@@ -8,7 +8,7 @@
   const ACTIVE_KEY = "dea-photo-evidence:active-property";
 
   const DEFAULT_GROUPS = [
-    { name: "Untagged" },
+    { name: "No Category Defined" },
     { name: "External Elevations" },
     { name: "Wall Construction" },
     { name: "Roof Construction" },
@@ -1025,6 +1025,7 @@
   // were sub-group renames; now they're top-level too.)
   const LEGACY_RENAMES = {
     "wall thickness": "Walls",
+    "untagged": "No Category Defined",
   };
 
   // Default groups that used to ship but are no longer in the new
@@ -1112,7 +1113,7 @@
       (g) => (g.name || "").trim().toLowerCase() === "external elevations"
     );
     const untaggedGroup = property.groups.find(
-      (g) => (g.name || "").trim().toLowerCase() === "untagged"
+      (g) => isUntaggedName(g.name)
     );
     const survivingGroups = [];
     for (const group of property.groups) {
@@ -1758,7 +1759,7 @@
     state.expanded.clear();
     if (state.property) {
       const untagged = (state.property.groups || []).find(
-        (g) => (g.name || "").trim().toLowerCase() === "untagged"
+        (g) => isUntaggedName(g.name)
       );
       if (untagged) state.expanded.add(untagged.id);
     }
@@ -1827,7 +1828,7 @@
         renderGroup(group, els.groups);
         // Slot the Windows card in immediately after Untagged so it
         // renders between Untagged and the first tag category.
-        if (windowsCard && (group.name || "").trim().toLowerCase() === "untagged") {
+        if (windowsCard && isUntaggedName(group.name)) {
           els.groups.appendChild(windowsCard);
         }
       }
@@ -2193,7 +2194,7 @@
   function renderGroup(group, container) {
     const node = els.groupTpl.content.firstElementChild.cloneNode(true);
     node.dataset.groupId = group.id;
-    const isUntagged = (group.name || "").trim().toLowerCase() === "untagged";
+    const isUntagged = isUntaggedName(group.name);
     if (isUntagged) node.classList.add("group-untagged");
 
     const header = node.querySelector(".group-header");
@@ -3139,7 +3140,7 @@
     }
     // Untagged: hidden when empty, pale-yellow when it has photos so
     // unfiled images stand out at the top of the page.
-    if (groupNode && (group.name || "").trim().toLowerCase() === "untagged") {
+    if (groupNode && isUntaggedName(group.name)) {
       groupNode.classList.toggle("is-empty", n === 0);
     }
   }
@@ -4270,15 +4271,21 @@
     });
   }
 
+  // The "holding pen" group used to be called "Untagged"; it's been
+  // renamed to "No Category Defined". The match accepts both so old
+  // data on a device still resolves while the rename migration runs.
+  function isUntaggedName(name) {
+    const n = (name || "").trim().toLowerCase();
+    return n === "no category defined" || n === "untagged";
+  }
+
   function findUntaggedGroup() {
     if (!state.property) return null;
-    return (state.property.groups || []).find(
-      (g) => (g.name || "").trim().toLowerCase() === "untagged"
-    ) || null;
+    return (state.property.groups || []).find((g) => isUntaggedName(g.name)) || null;
   }
 
   function isUntaggedGroup(group) {
-    return !!group && (group.name || "").trim().toLowerCase() === "untagged";
+    return !!group && isUntaggedName(group.name);
   }
 
   // Pre-flight check before any PDF / ZIP / photo download. Surfaces
@@ -4294,7 +4301,7 @@
     const untaggedCount = untagged ? (untagged.photoIds || []).length : 0;
     if (untaggedCount > 0) {
       issues.push(
-        `• ${untaggedCount} photo${untaggedCount === 1 ? "" : "s"} still in Untagged — please assign a category before downloading.`
+        `• ${untaggedCount} photo${untaggedCount === 1 ? "" : "s"} still under "No Category Defined" — please assign a category before downloading.`
       );
     }
     const emptyNonNa = (state.property.groups || []).filter((g) => {
@@ -5439,8 +5446,8 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
       const untagged = buckets.get(UNTAGGED_KEY);
       if (untagged && untagged.length) {
         groupsWithPhotos.push({
-          id: tagGroupId("Untagged"),
-          name: "Untagged",
+          id: tagGroupId("No Category Defined"),
+          name: "No Category Defined",
           photoIds: untagged.map((e) => e.photo.id),
           virtual: true,
           entries: untagged,
@@ -7907,11 +7914,12 @@ ${nojsFallback}
         toast("No category to capture into — try reloading.", "err");
         return;
       }
-      const isUntagged = (target.name || "").trim().toLowerCase() === "untagged";
+      const isUntagged = isUntaggedName(target.name);
       if (isUntagged) {
         const ok = confirm(
-          "No category selected. Photos will go to Untagged — you can " +
-          "tag them later from the lightbox. Continue?"
+          "No category selected. Photos will be filed under " +
+          "\"No Category Defined\" — you can tag them later from " +
+          "the lightbox. Continue?"
         );
         if (!ok) return;
       }
