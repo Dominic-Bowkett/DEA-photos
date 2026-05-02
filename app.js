@@ -1602,8 +1602,8 @@
     const p = state.property;
     els.metaName.value = p.name || "";
     els.metaAssessor.value = p.meta.assessor || "";
-    els.metaAddress.value = p.meta.address || "";
-    els.metaRef.value = p.meta.ref || "";
+    if (els.metaAddress) els.metaAddress.value = p.meta.address || "";
+    if (els.metaRef) els.metaRef.value = p.meta.ref || "";
     els.metaDate.value = p.meta.date || todayISO();
     applyMetaCollapsed(!!p.meta.collapsed);
   }
@@ -2992,21 +2992,28 @@
   }
 
   function updateGroupCount(group) {
-    const node = document.querySelector(
-      `[data-group-id="${group.id}"] .group-count, [data-group-id="${group.id}"] .subgroup-count`
-    );
-    if (!node) return;
+    const groupNode = document.querySelector(`[data-group-id="${group.id}"]`);
+    const node = groupNode
+      ? groupNode.querySelector(".group-count, .subgroup-count")
+      : null;
     const n = group.photoIds.length;
-    // Yellow circle badge with the count; hidden when empty or N/A
-    // (the N/A toggle button itself signals the state).
-    if (n === 0 || group.naMarked === true) {
-      node.textContent = "";
-      node.classList.add("is-empty");
-      node.title = group.naMarked === true ? "Not applicable" : "";
-    } else {
-      node.textContent = String(n);
-      node.classList.remove("is-empty");
-      node.title = `${n} photo${n === 1 ? "" : "s"}`;
+    if (node) {
+      // Yellow circle badge with the count; hidden when empty or N/A
+      // (the N/A toggle button itself signals the not-applicable state).
+      if (n === 0 || group.naMarked === true) {
+        node.textContent = "";
+        node.classList.add("is-empty");
+        node.title = group.naMarked === true ? "Not applicable" : "";
+      } else {
+        node.textContent = String(n);
+        node.classList.remove("is-empty");
+        node.title = `${n} photo${n === 1 ? "" : "s"}`;
+      }
+    }
+    // Untagged: hidden when empty, pale-yellow when it has photos so
+    // unfiled images stand out at the top of the page.
+    if (groupNode && (group.name || "").trim().toLowerCase() === "untagged") {
+      groupNode.classList.toggle("is-empty", n === 0);
     }
   }
 
@@ -5219,9 +5226,7 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
 <header>
   <h1>${escapeHtml(title)}</h1>
   <p class="meta">
-    <strong>Address:</strong> ${escapeHtml(meta.address || "—")} ·
     <strong>Assessor:</strong> ${escapeHtml(meta.assessor || "—")} ·
-    <strong>Job ref:</strong> ${escapeHtml(meta.ref || "—")} ·
     <strong>Date:</strong> ${escapeHtml(meta.date || "—")}
   </p>
 </header>
@@ -5330,8 +5335,6 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
     const lines = [
       ["Property", state.property.name || "—"],
       ["Assessor", meta.assessor || "—"],
-      ["Address", meta.address || "—"],
-      ["Job ref", meta.ref || "—"],
       ["Date", meta.date || "—"],
       ["Generated", new Date().toLocaleString()],
     ];
@@ -6175,7 +6178,7 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
       title,
       meta: {
         assessor: meta.assessor || "",
-        address: meta.address || "",
+        address: meta.address || (state.property && state.property.name) || "",
         ref: meta.ref || "",
         date: meta.date || "",
         generated: new Date().toLocaleString(),
@@ -6612,8 +6615,6 @@ body:not(.js-ready) .app{display:none}
       <h1>${escapeHtml(title)}</h1>
       <dl>
         <dt>Assessor</dt><dd>${safe(meta.assessor)}</dd>
-        <dt>Property</dt><dd>${safe(meta.address)}</dd>
-        <dt>Job ref</dt><dd>${safe(meta.ref)}</dd>
         <dt>Date</dt><dd>${safe(meta.date)}</dd>
         <dt>Generated</dt><dd>${escapeHtml(new Date().toLocaleString())}</dd>
       </dl>
@@ -7280,14 +7281,14 @@ ${nojsFallback}
     els.metaName.addEventListener("input", nameHandler);
     const handler = () => {
       state.property.meta.assessor = els.metaAssessor.value.trim();
-      state.property.meta.address = els.metaAddress.value.trim();
-      state.property.meta.ref = els.metaRef.value.trim();
+      if (els.metaAddress) state.property.meta.address = els.metaAddress.value.trim();
+      if (els.metaRef) state.property.meta.ref = els.metaRef.value.trim();
       state.property.meta.date = els.metaDate.value;
       saveProperty();
     };
     els.metaAssessor.addEventListener("input", handler);
-    els.metaAddress.addEventListener("input", handler);
-    els.metaRef.addEventListener("input", handler);
+    if (els.metaAddress) els.metaAddress.addEventListener("input", handler);
+    if (els.metaRef) els.metaRef.addEventListener("input", handler);
     els.metaDate.addEventListener("change", handler);
 
     if (els.metaHeader) {

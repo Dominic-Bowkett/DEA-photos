@@ -11,7 +11,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=54" />
+    <link rel="stylesheet" href="style.css?v=55" />
   </head>
   <body>
     <header class="app-header">
@@ -73,13 +73,15 @@
         </div>
         <div class="grid" id="meta-grid">
           <label>
-            <span>Property name (used in the switcher)</span>
-            <input id="meta-name" type="text" placeholder="e.g. 12 Acacia Avenue" />
+            <span>Property address</span>
+            <input id="meta-name" type="text" placeholder="e.g. 12 Acacia Avenue" autocomplete="street-address" />
           </label>
           <label>
             <span>Assessor</span>
             <input id="meta-assessor" type="text" placeholder="e.g. J. Smith" autocomplete="name" />
           </label>
+          <!-- Separate Property address / Job reference fields removed —
+               the property name above doubles as the address.
           <label>
             <span>Property address</span>
             <input id="meta-address" type="text" placeholder="Full address" autocomplete="street-address" />
@@ -88,6 +90,7 @@
             <span>Job reference</span>
             <input id="meta-ref" type="text" placeholder="e.g. EPC-2026-00421" />
           </label>
+          -->
           <label>
             <span>Date of assessment</span>
             <input id="meta-date" type="date" />
@@ -746,6 +749,6 @@
     <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/piexifjs@1.0.6/piexif.js"></script>
-    <script src="app.js?v=54"></script>
+    <script src="app.js?v=55"></script>
   </body>
 </html>

@@ -3178,6 +3178,7 @@ body.view-analysis .add-room-row {
   gap: 6px;
   flex: 0 0 auto;
   flex-wrap: nowrap;
+  margin-left: auto;
 }
 
 .btn-na-toggle {
@@ -3200,6 +3201,17 @@ body.view-analysis .add-room-row {
 
 .group-untagged .group-actions {
   display: none;
+}
+
+/* Untagged is hidden when there are no photos to file, and turns
+   pale yellow when there are — so unfiled photos catch the eye. */
+.group-untagged.is-empty {
+  display: none;
+}
+
+.group-untagged:not(.is-empty) {
+  background: var(--accent-soft);
+  border-color: var(--accent-border);
 }
 
 .group-help {
