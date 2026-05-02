@@ -1112,6 +1112,14 @@ input[type="date"]:focus {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  /* Cap the card height to the viewport (leaving room for the
+     dialog's outer padding). When content is taller than the
+     viewport the card scrolls internally instead of overflowing
+     off-screen and clipping the top + buttons. */
+  max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dialog-card h2 {
