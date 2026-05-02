@@ -1056,7 +1056,6 @@
   // Rename legacy top-level names that have changed. (Historically these
   // were sub-group renames; now they're top-level too.)
   const LEGACY_RENAMES = {
-    "wall thickness": "Walls",
     "untagged": "No Category Defined",
   };
 
@@ -1066,6 +1065,9 @@
   const RETIRED_DEFAULT_GROUPS = new Set([
     "loft",
     "hot water cylinder thermostat",
+    "walls",
+    "wall thickness",
+    "floor",
   ]);
 
   function migrateDefaults(property, photosMap) {
