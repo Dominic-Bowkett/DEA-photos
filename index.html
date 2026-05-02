@@ -153,13 +153,10 @@
       <section class="card capture-card" aria-label="Capture photos">
         <div class="rooms-card-header">
           <h2>Take or upload photos</h2>
-          <p class="rooms-card-hint">Pick a category and capture or upload. Leave it on Untagged to file photos from the lightbox later.</p>
+          <p class="rooms-card-hint">Pick one or more categories, then capture or upload. Leave every chip unselected to file photos under Untagged.</p>
         </div>
+        <div id="capture-tags" class="lightbox-tags capture-tags" role="group" aria-label="Tags for next capture"></div>
         <div class="capture-controls">
-          <label class="capture-tag-wrap">
-            <span class="sr-only">Tag for next capture</span>
-            <select id="capture-tag" aria-label="Tag for next capture"></select>
-          </label>
           <button id="btn-capture-take" class="btn btn-primary-soft" type="button">Take photo</button>
           <label class="btn btn-upload">
             <input type="file" id="capture-upload" accept="image/*" multiple hidden />
@@ -711,10 +708,7 @@
         <div class="camera-hud-top">
           <button id="camera-cancel" type="button" class="camera-hud-btn">Cancel</button>
           <div class="camera-hud-title">
-            <label class="camera-tag-wrap">
-              <span class="sr-only">Tag</span>
-              <select id="camera-tag-select" aria-label="Tag for these photos"></select>
-            </label>
+            <div id="camera-tags" class="lightbox-tags camera-tags" role="group" aria-label="Tags for these photos"></div>
             <span class="camera-count" id="camera-count">0</span>
           </div>
           <button id="camera-done" type="button" class="camera-hud-btn primary">Done</button>

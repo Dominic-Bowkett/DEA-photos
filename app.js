@@ -466,7 +466,7 @@
     addRoomBtn: document.getElementById("btn-add-room"),
     windows: document.getElementById("windows"),
     addWindowPropertyBtn: document.getElementById("btn-add-window-property"),
-    captureTag: document.getElementById("capture-tag"),
+    captureTags: document.getElementById("capture-tags"),
     captureTakeBtn: document.getElementById("btn-capture-take"),
     captureUpload: document.getElementById("capture-upload"),
     groupTpl: document.getElementById("group-template"),
@@ -3181,6 +3181,7 @@
       toast(`Uploaded ${imageFiles.length} photo${imageFiles.length === 1 ? "" : "s"}.`);
     }
     queueAutoTag(newPhotos);
+    return newPhotos;
   }
 
   function addGroup(name) {
@@ -3841,11 +3842,15 @@
     // and the latest compass heading captured during the session is
     // applied to that window's orientation on commit.
     pendingWindowPhoto: null,
+    // Multi-tag destinations for the current camera session. Set is
+    // pre-filled from the entry point (per-category Take button or the
+    // top capture card) and edited live via the camera HUD chips.
+    selectedGroupIds: new Set(),
     els: {
       overlay: document.getElementById("camera-overlay"),
       video: document.getElementById("camera-video"),
       flash: document.getElementById("camera-flash"),
-      tagSelect: document.getElementById("camera-tag-select"),
+      tagsContainer: document.getElementById("camera-tags"),
       count: document.getElementById("camera-count"),
       thumbs: document.getElementById("camera-thumbs"),
       shutter: document.getElementById("camera-shutter"),
@@ -3857,10 +3862,14 @@
     torchOn: false,
   };
 
-  async function openCamera(group) {
-    camera.group = group;
+  // Accepts either a single group object, an array/Set of group IDs, or
+  // null. The camera HUD shows a chip strip the user can edit during
+  // the session — on Done, captures are committed to every selected
+  // group (or to Untagged if none).
+  async function openCamera(target) {
+    camera.selectedGroupIds = normalizeToGroupIdSet(target);
     camera.buffer = [];
-    populateCameraTagSelect(group);
+    renderCameraTagChips();
     updateCameraCount();
     renderCameraBuffer();
     camera.els.overlay.hidden = false;
@@ -3874,6 +3883,25 @@
       toast("Can't open the in-app camera — check camera permission.", "err");
       return;
     }
+  }
+
+  // Normalise whatever a caller passes to a Set of group IDs (excluding
+  // any IDs that don't resolve to a real group on the current property).
+  function normalizeToGroupIdSet(target) {
+    const out = new Set();
+    if (!target) return out;
+    const groups = (state.property && state.property.groups) || [];
+    const isValidId = (id) => groups.some((g) => g.id === id);
+    if (target instanceof Set || Array.isArray(target)) {
+      for (const id of target) {
+        if (typeof id === "string" && isValidId(id)) out.add(id);
+      }
+      return out;
+    }
+    if (typeof target === "object" && target.id && isValidId(target.id)) {
+      out.add(target.id);
+    }
+    return out;
   }
 
   function cameraVideoTrack() {
@@ -3980,42 +4008,36 @@
         : null;
     stopCompassWatch();
 
-    if (save && camera.buffer.length && camera.group) {
+    if (save && camera.buffer.length) {
       if (laserCapture) {
-        // Laser-screen path: don't save the photo to the room. Run the
-        // analysis on the captured frame's dataUrl in the background
-        // and discard the photo afterwards — it isn't evidence, just
-        // a measurement input.
-        const targetRoom = camera.group;
+        // Laser-screen path: legacy. With windows decoupled from rooms,
+        // this branch only fires when the laser button has been
+        // un-hidden in the per-window template.
+        const groups = resolveDestinationGroups(camera.selectedGroupIds);
+        const targetRoom = groups[0];
         const captured = camera.buffer[camera.buffer.length - 1];
         const targetWin =
-          (targetRoom.windows || []).find((w) => w.id === laserCapture.windowId) ||
-          (targetRoom.windows || [])[0] ||
-          null;
+          (targetRoom && targetRoom.windows
+            ? targetRoom.windows.find((w) => w.id === laserCapture.windowId)
+            : null) || null;
         if (targetWin) {
           runLaserAutoFill(targetRoom, targetWin, captured).catch((err) => {
             console.error("laser auto-fill failed", err);
             toast(err && err.message ? err.message : "Couldn't read the laser screen.", "err");
           });
         } else {
-          toast("Add a window to this room before capturing from the laser.", "err");
+          toast("Add a window before capturing from the laser.", "err");
         }
       } else {
-        // Window-photo capture: pre-tag the photos so they file under
-        // Windows even before auto-tag runs.
-        if (windowPhoto) {
-          for (const p of camera.buffer) {
-            if (!p.roomTag) p.roomTag = "Windows";
-          }
-        }
-        commitBufferedPhotos(camera.group, camera.buffer);
+        // Empty chip set falls back to Untagged inside the helper.
+        commitBufferedPhotosToGroups(camera.selectedGroupIds, camera.buffer);
         if (windowPhoto) {
           applyWindowPhotoOrientation(windowPhoto, finalHeading);
         }
       }
     }
     camera.buffer = [];
-    camera.group = null;
+    camera.selectedGroupIds = new Set();
     renderCameraBuffer();
     updateCameraCount();
   }
@@ -4113,27 +4135,30 @@
     });
   }
 
-  // Build the option list for a tag dropdown. Used by both the
-  // top-level Capture card and the camera HUD picker.
-  function populateTagSelect(selectEl, selectedId) {
-    if (!selectEl) return;
-    selectEl.innerHTML = "";
-    const groups = (state.property && state.property.groups) || [];
-    for (const g of groups) {
-      const opt = document.createElement("option");
-      opt.value = g.id;
-      opt.textContent = g.name;
-      selectEl.appendChild(opt);
-    }
-    if (selectedId && groups.some((g) => g.id === selectedId)) {
-      selectEl.value = selectedId;
+  // Render a tag-chip strip for the given selected-group set into the
+  // supplied container. Each chip is one top-level group (excluding
+  // Untagged, which is auto-managed). Returns nothing — the caller
+  // wires a click handler that mutates `selected` and re-renders.
+  function renderTagChipStrip(container, selected) {
+    if (!container) return;
+    container.innerHTML = "";
+    if (!state.property) return;
+    for (const g of state.property.groups || []) {
+      if ((g.name || "").trim().toLowerCase() === "untagged") continue;
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "lightbox-tag-chip";
+      chip.dataset.groupId = g.id;
+      chip.textContent = g.name;
+      const on = selected && selected.has(g.id);
+      chip.setAttribute("aria-pressed", String(on));
+      chip.classList.toggle("is-on", on);
+      container.appendChild(chip);
     }
   }
 
-  function populateCameraTagSelect(group) {
-    const sel = camera.els.tagSelect;
-    if (!sel) return;
-    populateTagSelect(sel, group ? group.id : null);
+  function renderCameraTagChips() {
+    renderTagChipStrip(camera.els.tagsContainer, camera.selectedGroupIds);
   }
 
   function findUntaggedGroup() {
@@ -4143,20 +4168,23 @@
     ) || null;
   }
 
-  // Top-level Capture card: tag select + Take/Upload. Default is Untagged.
-  // Photos taken via this card are routed to whichever group is selected.
+  // Top-level Capture card: chip strip + Take/Upload. The selected set
+  // is shared across the page so it survives camera sessions; photos
+  // captured / uploaded here go to every selected category. With no
+  // chips selected, photos default to Untagged.
+  state.captureSelectedGroupIds = new Set();
   function renderCaptureCard() {
-    if (!els.captureTag) return;
-    const previous = els.captureTag.value;
-    const untagged = findUntaggedGroup();
-    populateTagSelect(els.captureTag, previous || (untagged && untagged.id));
+    renderTagChipStrip(els.captureTags, state.captureSelectedGroupIds);
   }
 
-  function captureCardSelectedGroup() {
-    if (!state.property) return null;
-    const id = els.captureTag ? els.captureTag.value : "";
-    const groups = state.property.groups || [];
-    return groups.find((g) => g.id === id) || findUntaggedGroup() || groups[0] || null;
+  function resolveDestinationGroups(groupIdSet) {
+    const property = state.property;
+    if (!property) return [];
+    const groups = (property.groups || [])
+      .filter((g) => groupIdSet && groupIdSet.has(g.id));
+    if (groups.length) return groups;
+    const u = findUntaggedGroup();
+    return u ? [u] : [];
   }
 
   async function commitBufferedPhotos(group, photos) {
@@ -4186,14 +4214,78 @@
     queueAutoTag(photos);
   }
 
+  // Commit a buffer of camera captures to every selected group. The
+  // first selected group acts as the "primary" (used for label, expand,
+  // toast); the remainder just receive the photoIds. With no groups
+  // selected, the photos go to Untagged.
+  async function commitBufferedPhotosToGroups(groupIdSet, photos) {
+    if (!photos || !photos.length) return;
+    const groups = resolveDestinationGroups(groupIdSet);
+    if (!groups.length) return;
+    const primary = groups[0];
+    await commitBufferedPhotos(primary, photos);
+    if (groups.length > 1) {
+      for (let i = 1; i < groups.length; i++) {
+        const g = groups[i];
+        for (const photo of photos) {
+          if (!Array.isArray(g.photoIds)) g.photoIds = [];
+          if (!g.photoIds.includes(photo.id)) g.photoIds.push(photo.id);
+          renderThumbInGroup(g, photo);
+        }
+        expandGroup(g);
+        updateGroupCount(g);
+      }
+      for (const photo of photos) syncUntaggedMembership(photo.id);
+      saveProperty();
+    }
+  }
+
+  // Add an uploaded-files batch to every selected group. Mirrors the
+  // multi-group commit flow above for the upload path.
+  async function addUploadedPhotosToGroups(groupIdSet, files) {
+    if (!files || !files.length) return;
+    const groups = resolveDestinationGroups(groupIdSet);
+    if (!groups.length) return;
+    const primary = groups[0];
+    const newPhotos = (await addUploadedPhotos(primary, files)) || [];
+    if (groups.length > 1 && newPhotos.length) {
+      for (let i = 1; i < groups.length; i++) {
+        const g = groups[i];
+        for (const photo of newPhotos) {
+          if (!Array.isArray(g.photoIds)) g.photoIds = [];
+          if (!g.photoIds.includes(photo.id)) g.photoIds.push(photo.id);
+          renderThumbInGroup(g, photo);
+        }
+        expandGroup(g);
+        updateGroupCount(g);
+      }
+      for (const photo of newPhotos) syncUntaggedMembership(photo.id);
+      saveProperty();
+    }
+  }
+
+  // Render a thumb into a specific group's DOM node, or no-op if the
+  // group isn't currently visible. Used by the multi-group commit /
+  // upload helpers to mirror photoIds into the page.
+  function renderThumbInGroup(group, photo) {
+    const thumbsEl = document.querySelector(`[data-group-id="${group.id}"] .thumbs`);
+    if (!thumbsEl) return;
+    if (thumbsEl.querySelector(`.thumb[data-photo-id="${photo.id}"]`)) return;
+    renderThumb(group, photo);
+  }
+
   camera.els.shutter.addEventListener("click", captureFrame);
-  if (camera.els.tagSelect) {
-    camera.els.tagSelect.addEventListener("change", () => {
-      const id = camera.els.tagSelect.value;
-      const next = (state.property && state.property.groups || []).find((g) => g.id === id);
-      if (next) camera.group = next;
+  if (camera.els.tagsContainer) {
+    camera.els.tagsContainer.addEventListener("click", (e) => {
+      const chip = e.target.closest(".lightbox-tag-chip");
+      if (!chip || !camera.els.tagsContainer.contains(chip)) return;
+      e.stopPropagation();
+      const id = chip.dataset.groupId;
+      if (!id) return;
+      if (camera.selectedGroupIds.has(id)) camera.selectedGroupIds.delete(id);
+      else camera.selectedGroupIds.add(id);
+      renderCameraTagChips();
     });
-    camera.els.tagSelect.addEventListener("click", (e) => e.stopPropagation());
   }
   camera.els.done.addEventListener("click", () => closeCamera(true));
   camera.els.cancel.addEventListener("click", () => {
@@ -7693,15 +7785,22 @@ ${nojsFallback}
     });
   }
 
+  if (els.captureTags) {
+    els.captureTags.addEventListener("click", (e) => {
+      const chip = e.target.closest(".lightbox-tag-chip");
+      if (!chip || !els.captureTags.contains(chip)) return;
+      const id = chip.dataset.groupId;
+      if (!id) return;
+      if (state.captureSelectedGroupIds.has(id)) state.captureSelectedGroupIds.delete(id);
+      else state.captureSelectedGroupIds.add(id);
+      renderCaptureCard();
+    });
+  }
+
   if (els.captureTakeBtn) {
     els.captureTakeBtn.addEventListener("click", () => {
       if (!state.property) return;
-      const target = captureCardSelectedGroup();
-      if (!target) {
-        toast("No category to capture into — try reloading.", "err");
-        return;
-      }
-      openCamera(target);
+      openCamera(state.captureSelectedGroupIds);
     });
   }
 
@@ -7710,12 +7809,7 @@ ${nojsFallback}
       const files = Array.from(e.target.files || []);
       els.captureUpload.value = "";
       if (!files.length) return;
-      const target = captureCardSelectedGroup();
-      if (!target) {
-        toast("No category to upload into — try reloading.", "err");
-        return;
-      }
-      await addUploadedPhotos(target, files);
+      await addUploadedPhotosToGroups(state.captureSelectedGroupIds, files);
     });
   }
 
