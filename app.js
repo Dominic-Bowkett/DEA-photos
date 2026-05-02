@@ -2612,7 +2612,7 @@
       winOrient.innerHTML = "";
       const placeholder = document.createElement("option");
       placeholder.value = "";
-      placeholder.textContent = "Select orientation";
+      placeholder.textContent = "Select";
       winOrient.appendChild(placeholder);
       for (const o of WINDOW_ORIENTATIONS) {
         const opt = document.createElement("option");
