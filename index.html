@@ -13,7 +13,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <link rel="stylesheet" href="style.css?v=79" />
+    <link rel="stylesheet" href="style.css?v=80" />
   </head>
   <body>
     <header class="app-header">
@@ -589,7 +589,10 @@
         <button class="lightbox-btn lightbox-next" type="button" aria-label="Next photo">&#x203A;</button>
       </div>
       <footer class="lightbox-footer">
-        <div class="lightbox-caption" id="lightbox-caption"></div>
+        <div class="lightbox-caption" aria-label="Capture details">
+          <span class="lightbox-caption-label">Captured</span>
+          <span class="lightbox-caption-text" id="lightbox-caption"></span>
+        </div>
         <div class="lightbox-controls">
           <!-- Building dropdown hidden — buildings (Main / Ext1-4) are
                no longer surfaced; photo.building stays as data and
