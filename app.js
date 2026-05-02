@@ -1670,6 +1670,13 @@
   }
 
   function renderGroups() {
+    // The Windows card (a sibling of #groups in static HTML) is parked
+    // inside #groups right under the Untagged group between renders.
+    // Move it back out before the upcoming clear so its DOM survives.
+    const windowsCard = document.querySelector(".windows-card");
+    if (windowsCard && windowsCard.parentNode === els.groups) {
+      els.groups.parentNode.insertBefore(windowsCard, els.groups);
+    }
     els.groups.innerHTML = "";
     if (state.view === "tag") {
       renderByTag();
@@ -1680,6 +1687,11 @@
     } else {
       for (const group of state.property.groups) {
         renderGroup(group, els.groups);
+        // Slot the Windows card in immediately after Untagged so it
+        // renders between Untagged and the first tag category.
+        if (windowsCard && (group.name || "").trim().toLowerCase() === "untagged") {
+          els.groups.appendChild(windowsCard);
+        }
       }
     }
   }
