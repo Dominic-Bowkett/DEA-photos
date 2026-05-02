@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const DB_NAME = "retrofit-photos";
+  const DB_NAME = "dea-photo-evidence";
   const DB_VERSION = 1;
   const STORE_PROPERTIES = "properties";
   const STORE_PHOTOS = "photos";
-  const ACTIVE_KEY = "retrofit-photos:active-property";
+  const ACTIVE_KEY = "dea-photo-evidence:active-property";
 
   const DEFAULT_GROUPS = [
     { name: "Untagged" },
@@ -105,8 +105,8 @@
   // dialog. Each preset is one system prompt + one JSON schema, so adding
   // more is a matter of dropping another entry into this array.
   const CLAUDE_API_ENDPOINT = "https://api.anthropic.com/v1/messages";
-  const CLAUDE_API_KEY_STORAGE = "retrofit-photos:claude-api-key";
-  const CLAUDE_MODEL_STORAGE = "retrofit-photos:claude-model";
+  const CLAUDE_API_KEY_STORAGE = "dea-photo-evidence:claude-api-key";
+  const CLAUDE_MODEL_STORAGE = "dea-photo-evidence:claude-model";
   const DEFAULT_CLAUDE_MODEL = "claude-opus-4-7";
   const CLAUDE_MODELS = [
     { id: "claude-opus-4-7", label: "Opus 4.7 — highest accuracy" },
@@ -4791,7 +4791,7 @@
   function isAutoTagEnabled() {
     if (!getClaudeApiKey()) return false;
     try {
-      const v = localStorage.getItem("retrofit-photos:auto-tag");
+      const v = localStorage.getItem("dea-photo-evidence:auto-tag");
       return v === null ? true : v === "1";
     } catch (_) {
       return true;
@@ -4800,7 +4800,7 @@
 
   function setAutoTagEnabled(on) {
     try {
-      localStorage.setItem("retrofit-photos:auto-tag", on ? "1" : "0");
+      localStorage.setItem("dea-photo-evidence:auto-tag", on ? "1" : "0");
     } catch (_) { /* ignore */ }
   }
 
@@ -6737,7 +6737,7 @@ ${nojsFallback}
   // page often reloads on return — taking the in-memory loop with it.
   // We persist a small plan in localStorage so the user can resume the
   // multi-part flow tap by tap, and a reload doesn't lose the place.
-  const ORIGINALS_PLAN_KEY = "retrofit-photos:originals-plan";
+  const ORIGINALS_PLAN_KEY = "dea-photo-evidence:originals-plan";
 
   function loadOriginalsPlan() {
     try {
@@ -8092,7 +8092,7 @@ ${nojsFallback}
   })();
 
   // -------------------- Boot --------------------
-  const GPS_INTRO_KEY = "retrofit-photos:gps-intro-seen";
+  const GPS_INTRO_KEY = "dea-photo-evidence:gps-intro-seen";
 
   async function autoRequestGps() {
     if (!("geolocation" in navigator)) {
@@ -8130,7 +8130,7 @@ ${nojsFallback}
   // "photo-evidence" IndexedDB, copy it into our namespaced DB on first
   // load so users don't appear to lose their properties. The flag is kept
   // in localStorage so the import runs at most once per browser.
-  const LEGACY_IMPORT_FLAG = "retrofit-photos:legacy-import-done";
+  const LEGACY_IMPORT_FLAG = "dea-photo-evidence:legacy-import-done";
   const LEGACY_DB = "photo-evidence";
 
   async function importFromLegacyIfNeeded() {
@@ -8261,7 +8261,7 @@ ${nojsFallback}
   // Also wires the "Add to Home Screen" button: prefers the native
   // beforeinstallprompt where it's available (Chrome / Edge), falls
   // back to revealing platform-specific manual instructions.
-  const WELCOME_ACCEPTED_KEY = "retrofit-photos:welcome-accepted";
+  const WELCOME_ACCEPTED_KEY = "dea-photo-evidence:welcome-accepted";
   let deferredInstallPrompt = null;
   window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
