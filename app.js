@@ -793,7 +793,7 @@
     }
   }
 
-  function drawOverlay(ctx, width, height, dateText, gpsText) {
+  function drawOverlay(ctx, width, height, dateText, gpsText, extraText) {
     const pad = Math.round(Math.min(width, height) * 0.015);
     const fontPx = Math.max(14, Math.round(Math.min(width, height) * 0.028));
     ctx.font = `600 ${fontPx}px -apple-system, Roboto, "Segoe UI", Arial, sans-serif`;
@@ -802,6 +802,7 @@
 
     const lineGap = Math.round(fontPx * 0.35);
     const lines = [dateText, gpsText];
+    if (extraText) lines.push(extraText);
     const metrics = lines.map((l) => ctx.measureText(l));
     const maxWidth = Math.max(...metrics.map((m) => m.width));
     const boxH = lines.length * fontPx + (lines.length - 1) * lineGap + pad * 2;
@@ -4109,6 +4110,14 @@
     renderCameraBuffer();
     camera.els.overlay.hidden = false;
     camera.els.overlay.setAttribute("aria-hidden", "false");
+    // External Elevations photos get the building-face orientation
+    // stamped on them — kick the compass off as soon as the camera
+    // opens so a heading is ready by the time the user shoots.
+    if (isExternalElevationsGroup(group)) {
+      startCompassWatch().catch((err) => {
+        console.warn("compass watch failed", err);
+      });
+    }
     try {
       await startCameraStream(camera.facingMode);
     } catch (err) {
@@ -4308,7 +4317,31 @@
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, outW, outH);
     const stampDate = new Date();
-    drawOverlay(ctx, outW, outH, formatStamp(stampDate), formatGps(state.gps));
+    // External Elevations: stamp the building face's orientation
+    // under the date / GPS lines. The phone faces the wall, so the
+    // wall faces the opposite direction — rotate the heading 180°
+    // before mapping it to a compass point.
+    let elevationText = "";
+    let elevationOrientation = "";
+    if (
+      isExternalElevationsGroup(camera.group) &&
+      compassWatch.active &&
+      Number.isFinite(compassWatch.heading)
+    ) {
+      const opp = (compassWatch.heading + 180) % 360;
+      elevationOrientation = compassHeadingToOrientation(opp);
+      if (elevationOrientation) {
+        elevationText = `${elevationOrientation} Elevation`;
+      }
+    }
+    drawOverlay(
+      ctx,
+      outW,
+      outH,
+      formatStamp(stampDate),
+      formatGps(state.gps),
+      elevationText
+    );
     const dataUrl = canvas.toDataURL("image/jpeg", JPEG_QUALITY);
     const photo = {
       id: uid("p"),
@@ -4322,6 +4355,7 @@
       defect: false,
       roomTag: NO_ROOM_TAG,
       label: "",
+      elevationOrientation: elevationOrientation || "",
     };
     camera.buffer.push(photo);
     flashScreen();
@@ -4372,6 +4406,10 @@
 
   function isUntaggedGroup(group) {
     return !!group && isUntaggedName(group.name);
+  }
+
+  function isExternalElevationsGroup(group) {
+    return !!group && (group.name || "").trim().toLowerCase() === "external elevations";
   }
 
   // Pre-flight check before any PDF / ZIP / photo download. Surfaces
