@@ -4472,8 +4472,11 @@
   }
 
   // Draw a small "<Point> Elevation" pill that sits just above the
-  // existing date / GPS stamp on a photo. Mirrors the styling of
-  // drawOverlay so the two boxes look like one stack.
+  // existing date / GPS stamp on a photo. Uses a solid black fill
+  // (not the semi-transparent black of the original overlay) so it
+  // cleanly covers the area when re-stamped over an already-stamped
+  // photo — there's no visual overlap with the date / GPS lines
+  // underneath.
   function drawElevationPill(ctx, width, height, text) {
     const pad = Math.round(Math.min(width, height) * 0.015);
     const fontPx = Math.max(14, Math.round(Math.min(width, height) * 0.028));
@@ -4487,17 +4490,14 @@
     // The original date / GPS box is 2 lines tall; stack the pill
     // immediately above it with a small gap.
     const existingBoxH = 2 * fontPx + lineGap + pad * 2;
-    const gap = Math.max(4, Math.round(pad * 0.4));
+    const gap = Math.max(6, Math.round(pad * 0.6));
     const xRight = width - pad;
     const y = height - pad - existingBoxH - gap - pillH;
-    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    ctx.fillStyle = "#000";
     roundRect(ctx, xRight - pillW + pad, y, pillW, pillH, Math.round(pad * 0.6));
     ctx.fill();
     ctx.fillStyle = "#fff";
-    ctx.shadowColor = "rgba(0,0,0,0.75)";
-    ctx.shadowBlur = 2;
     ctx.fillText(text, xRight, y + pad + fontPx);
-    ctx.shadowBlur = 0;
   }
 
   // Pre-flight check before any PDF / ZIP / photo download. Surfaces
