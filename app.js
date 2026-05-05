@@ -3991,6 +3991,26 @@
       if (moved) {
         saveProperty();
         renderGroups();
+        // If the photo just landed in External Elevations and we
+        // captured a compass heading at shutter-time, retroactively
+        // stamp the building-face orientation onto the image.
+        const targetGroup = (state.property.groups || []).find(
+          (g) => g.id === els.lightboxTag.value
+        );
+        if (isExternalElevationsGroup(targetGroup)) {
+          restampElevationOnPhoto(p)
+            .then((stamped) => {
+              if (!stamped) return;
+              if (els.lightboxImg && currentLightboxPhoto() === p) {
+                els.lightboxImg.src = p.dataUrl;
+              }
+              renderGroups();
+              toast(`Stamped as ${p.elevationOrientation} Elevation.`);
+            })
+            .catch((err) => {
+              console.warn("Elevation restamp failed", err);
+            });
+        }
         // Rebuild the source list to reflect the new owner.
         const built = buildLightboxSources();
         lightbox.sources = built.sources;
@@ -4110,14 +4130,13 @@
     renderCameraBuffer();
     camera.els.overlay.hidden = false;
     camera.els.overlay.setAttribute("aria-hidden", "false");
-    // External Elevations photos get the building-face orientation
-    // stamped on them — kick the compass off as soon as the camera
-    // opens so a heading is ready by the time the user shoots.
-    if (isExternalElevationsGroup(group)) {
-      startCompassWatch().catch((err) => {
-        console.warn("compass watch failed", err);
-      });
-    }
+    // Always kick the compass off when the camera opens — the heading
+    // is recorded on every shot so a photo can be re-stamped later if
+    // the user moves it into External Elevations from somewhere else
+    // (e.g. shot under No Category Defined first, then tagged later).
+    startCompassWatch().catch((err) => {
+      console.warn("compass watch failed", err);
+    });
     try {
       await startCameraStream(camera.facingMode);
     } catch (err) {
@@ -4317,18 +4336,22 @@
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, outW, outH);
     const stampDate = new Date();
+    // Snapshot whatever heading the compass has right now (if any).
+    // Stored on every photo so the elevation stamp can be applied
+    // later if the user moves it into External Elevations from
+    // another category.
+    const capturedHeading =
+      compassWatch.active && Number.isFinite(compassWatch.heading)
+        ? ((compassWatch.heading % 360) + 360) % 360
+        : null;
     // External Elevations: stamp the building face's orientation
-    // under the date / GPS lines. The phone faces the wall, so the
-    // wall faces the opposite direction — rotate the heading 180°
-    // before mapping it to a compass point.
+    // under the date / GPS lines straight away. The phone faces the
+    // wall, so the wall faces the opposite direction — rotate the
+    // heading 180° before mapping it to a compass point.
     let elevationText = "";
     let elevationOrientation = "";
-    if (
-      isExternalElevationsGroup(camera.group) &&
-      compassWatch.active &&
-      Number.isFinite(compassWatch.heading)
-    ) {
-      const opp = (compassWatch.heading + 180) % 360;
+    if (isExternalElevationsGroup(camera.group) && capturedHeading != null) {
+      const opp = (capturedHeading + 180) % 360;
       elevationOrientation = compassHeadingToOrientation(opp);
       if (elevationOrientation) {
         elevationText = `${elevationOrientation} Elevation`;
@@ -4356,6 +4379,7 @@
       roomTag: NO_ROOM_TAG,
       label: "",
       elevationOrientation: elevationOrientation || "",
+      compassHeading: capturedHeading,
     };
     camera.buffer.push(photo);
     flashScreen();
@@ -4410,6 +4434,70 @@
 
   function isExternalElevationsGroup(group) {
     return !!group && (group.name || "").trim().toLowerCase() === "external elevations";
+  }
+
+  // Re-render a captured photo's image data with the building-face
+  // orientation stamped on. Used when a photo gets moved into
+  // External Elevations after the fact and didn't pick up the
+  // elevation line at capture time. Returns true if the photo was
+  // updated, false if no heading was available.
+  async function restampElevationOnPhoto(photo) {
+    if (!photo || !photo.dataUrl) return false;
+    if (photo.elevationOrientation) return false;
+    if (!Number.isFinite(photo.compassHeading)) return false;
+    const point = compassHeadingToOrientation((photo.compassHeading + 180) % 360);
+    if (!point) return false;
+    const text = `${point} Elevation`;
+    let img;
+    try {
+      img = await loadImageFromDataUrl(photo.dataUrl);
+    } catch (err) {
+      console.warn("Could not load photo for elevation restamp", err);
+      return false;
+    }
+    const c = document.createElement("canvas");
+    c.width = img.naturalWidth;
+    c.height = img.naturalHeight;
+    const ctx = c.getContext("2d");
+    ctx.drawImage(img, 0, 0);
+    drawElevationPill(ctx, c.width, c.height, text);
+    photo.dataUrl = c.toDataURL("image/jpeg", JPEG_QUALITY);
+    photo.elevationOrientation = point;
+    try {
+      await savePhotoNow(photo);
+    } catch (err) {
+      console.warn("Failed to persist elevation-restamped photo", err);
+    }
+    return true;
+  }
+
+  // Draw a small "<Point> Elevation" pill that sits just above the
+  // existing date / GPS stamp on a photo. Mirrors the styling of
+  // drawOverlay so the two boxes look like one stack.
+  function drawElevationPill(ctx, width, height, text) {
+    const pad = Math.round(Math.min(width, height) * 0.015);
+    const fontPx = Math.max(14, Math.round(Math.min(width, height) * 0.028));
+    ctx.font = `600 ${fontPx}px -apple-system, Roboto, "Segoe UI", Arial, sans-serif`;
+    ctx.textBaseline = "alphabetic";
+    ctx.textAlign = "right";
+    const textW = ctx.measureText(text).width;
+    const lineGap = Math.round(fontPx * 0.35);
+    const pillH = fontPx + pad * 2;
+    const pillW = textW + pad * 2;
+    // The original date / GPS box is 2 lines tall; stack the pill
+    // immediately above it with a small gap.
+    const existingBoxH = 2 * fontPx + lineGap + pad * 2;
+    const gap = Math.max(4, Math.round(pad * 0.4));
+    const xRight = width - pad;
+    const y = height - pad - existingBoxH - gap - pillH;
+    ctx.fillStyle = "rgba(0, 0, 0, 0.55)";
+    roundRect(ctx, xRight - pillW + pad, y, pillW, pillH, Math.round(pad * 0.6));
+    ctx.fill();
+    ctx.fillStyle = "#fff";
+    ctx.shadowColor = "rgba(0,0,0,0.75)";
+    ctx.shadowBlur = 2;
+    ctx.fillText(text, xRight, y + pad + fontPx);
+    ctx.shadowBlur = 0;
   }
 
   // Pre-flight check before any PDF / ZIP / photo download. Surfaces
