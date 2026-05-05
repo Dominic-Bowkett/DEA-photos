@@ -3549,19 +3549,34 @@
   // Move a photo between top-level groups. No-op if it's already in
   // the destination. Returns true if the photo moved.
   function movePhotoBetweenGroups(photoId, targetGroupId) {
-    if (!state.property) return false;
+    if (!state.property) return { moved: false, restamp: null };
     const groups = state.property.groups || [];
     const target = groups.find((g) => g.id === targetGroupId);
-    if (!target) return false;
+    if (!target) return { moved: false, restamp: null };
     const owner = findOwningGroup(photoId);
-    if (owner === target) return false;
+    if (owner === target) return { moved: false, restamp: null };
     if (owner && Array.isArray(owner.photoIds)) {
       const i = owner.photoIds.indexOf(photoId);
       if (i !== -1) owner.photoIds.splice(i, 1);
     }
     if (!Array.isArray(target.photoIds)) target.photoIds = [];
     if (!target.photoIds.includes(photoId)) target.photoIds.push(photoId);
-    return true;
+    // Any path that lands a photo in External Elevations triggers the
+    // building-face stamp — manual retag from the lightbox today, but
+    // also any future API / auto-categorise route that calls this
+    // helper. The restamp runs async; callers can await the returned
+    // promise to refresh dependent UI (e.g. lightbox image).
+    let restamp = null;
+    if (isExternalElevationsGroup(target)) {
+      const photo = state.photos.get(photoId);
+      if (photo) {
+        restamp = restampElevationOnPhoto(photo).catch((err) => {
+          console.warn("Elevation restamp failed", err);
+          return false;
+        });
+      }
+    }
+    return { moved: true, restamp };
   }
 
   function setLightboxSource(sourceId, preferPhotoId) {
@@ -3986,30 +4001,24 @@
       const nextInUntagged = wasUntaggedView
         ? (lightbox.photos[lightbox.index + 1] || lightbox.photos[lightbox.index - 1] || null)
         : null;
-      const moved = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
+      const moveResult = movePhotoBetweenGroups(p.id, els.lightboxTag.value);
+      const moved = moveResult && moveResult.moved;
       persistLightboxPhoto();
       if (moved) {
         saveProperty();
         renderGroups();
-        // If the photo just landed in External Elevations and we
-        // captured a compass heading at shutter-time, retroactively
-        // stamp the building-face orientation onto the image.
-        const targetGroup = (state.property.groups || []).find(
-          (g) => g.id === els.lightboxTag.value
-        );
-        if (isExternalElevationsGroup(targetGroup)) {
-          restampElevationOnPhoto(p)
-            .then((stamped) => {
-              if (!stamped) return;
-              if (els.lightboxImg && currentLightboxPhoto() === p) {
-                els.lightboxImg.src = p.dataUrl;
-              }
-              renderGroups();
-              toast(`Stamped as ${p.elevationOrientation} Elevation.`);
-            })
-            .catch((err) => {
-              console.warn("Elevation restamp failed", err);
-            });
+        // If movePhotoBetweenGroups kicked off an elevation restamp
+        // (because the destination was External Elevations), refresh
+        // the lightbox image once it lands and toast the user.
+        if (moveResult.restamp) {
+          moveResult.restamp.then((stamped) => {
+            if (!stamped) return;
+            if (els.lightboxImg && currentLightboxPhoto() === p) {
+              els.lightboxImg.src = p.dataUrl;
+            }
+            renderGroups();
+            toast(`Stamped as ${p.elevationOrientation} Elevation.`);
+          });
         }
         // Rebuild the source list to reflect the new owner.
         const built = buildLightboxSources();
