@@ -3516,6 +3516,27 @@ body.view-analysis .add-room-row {
   margin: 0;
 }
 
+.welcome-terms {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--ink);
+}
+
+.welcome-terms p {
+  margin: 0;
+}
+
+.welcome-terms a {
+  color: var(--accent-ink);
+  font-weight: 600;
+  text-decoration: underline;
+}
+
 /* Yellow surfaces always read as pure black text. The accent
    yellow has low contrast against slate-900 / deep-teal at small
    sizes, so anything sitting on var(--accent) or var(--accent-soft)
