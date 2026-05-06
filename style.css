@@ -2310,8 +2310,9 @@ input[type="date"]:focus {
   color: var(--accent-ink);
 }
 
-.room-windows-roof {
-  margin-left: auto;
+.room-windows-roof,
+.room-windows-shutters,
+.room-windows-insulated {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -2328,9 +2329,15 @@ input[type="date"]:focus {
   cursor: pointer;
 }
 
-.room-windows-roof[data-state="on"] {
+.room-windows-roof {
+  margin-left: auto;
+}
+
+.room-windows-roof[data-state="on"],
+.room-windows-shutters[data-state="on"],
+.room-windows-insulated[data-state="on"] {
   background: var(--accent);
-  color: #fff;
+  color: #000;
   border-color: var(--accent);
 }
 
@@ -2341,9 +2348,11 @@ input[type="date"]:focus {
   background: var(--line);
 }
 
-.room-windows-roof[data-state="on"] .room-windows-roof-dot {
-  background: #fff;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.45);
+.room-windows-roof[data-state="on"] .room-windows-roof-dot,
+.room-windows-shutters[data-state="on"] .room-windows-roof-dot,
+.room-windows-insulated[data-state="on"] .room-windows-roof-dot {
+  background: #000;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.18);
 }
 
 .room-windows-remove {

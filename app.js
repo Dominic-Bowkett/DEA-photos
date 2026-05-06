@@ -1371,6 +1371,9 @@
     const width = typeof win.width === "string" ? win.width : "";
     const height = typeof win.height === "string" ? win.height : "";
     const roofWindow = win.roofWindow === true;
+    const shutters = win.shutters === true;
+    // Insulated only makes sense if shutters are present.
+    const insulatedShutters = shutters && win.insulatedShutters === true;
     // Roof windows can additionally point Horizontal (looking up the
     // sky from a flat skylight or a Velux at low pitch).
     const allowedOrientations = roofWindow
@@ -1387,7 +1390,8 @@
       win.type !== type || win.age !== age ||
       win.gap !== effectiveGap || win.frame !== effectiveFrame ||
       win.width !== width || win.height !== height ||
-      win.orientation !== orientation || win.roofWindow !== roofWindow
+      win.orientation !== orientation || win.roofWindow !== roofWindow ||
+      win.shutters !== shutters || win.insulatedShutters !== insulatedShutters
     ) {
       changed = true;
     }
@@ -1399,6 +1403,8 @@
     win.height = height;
     win.orientation = orientation;
     win.roofWindow = roofWindow;
+    win.shutters = shutters;
+    win.insulatedShutters = insulatedShutters;
     return changed;
   }
 
@@ -2754,7 +2760,7 @@
       const on = win.roofWindow === true;
       roofPill.dataset.state = on ? "on" : "off";
       roofPill.setAttribute("aria-pressed", String(on));
-      if (roofText) roofText.textContent = on ? "Roof window ✓" : "Roof window";
+      if (roofText) roofText.textContent = on ? "Roof ✓" : "Roof";
     };
     applyRoofPill();
     if (roofPill) {
@@ -2764,6 +2770,54 @@
         normalizeOneWindow(win);
         applyRoofPill();
         rebuildOrientationOptions();
+        rememberWindowDefaults(win);
+        saveProperty();
+      });
+    }
+
+    // Shutters + Insulated toggles. Insulated is only meaningful when
+    // shutters are present, so the pill is hidden until the user
+    // turns Shutters on. Toggling Shutters off also clears the
+    // Insulated state.
+    const shuttersPill = node.querySelector(".room-windows-shutters");
+    const shuttersText = shuttersPill ? shuttersPill.querySelector(".room-windows-shutters-text") : null;
+    const insulatedPill = node.querySelector(".room-windows-insulated");
+    const insulatedText = insulatedPill ? insulatedPill.querySelector(".room-windows-insulated-text") : null;
+    const applyShuttersPills = () => {
+      if (shuttersPill) {
+        const on = win.shutters === true;
+        shuttersPill.dataset.state = on ? "on" : "off";
+        shuttersPill.setAttribute("aria-pressed", String(on));
+        if (shuttersText) shuttersText.textContent = on ? "Shutters ✓" : "Shutters";
+      }
+      if (insulatedPill) {
+        const showInsulated = win.shutters === true;
+        insulatedPill.hidden = !showInsulated;
+        const onIns = showInsulated && win.insulatedShutters === true;
+        insulatedPill.dataset.state = onIns ? "on" : "off";
+        insulatedPill.setAttribute("aria-pressed", String(onIns));
+        if (insulatedText) insulatedText.textContent = onIns ? "Insulated ✓" : "Insulated";
+      }
+    };
+    applyShuttersPills();
+    if (shuttersPill) {
+      shuttersPill.addEventListener("click", (e) => {
+        e.stopPropagation();
+        win.shutters = !(win.shutters === true);
+        if (!win.shutters) win.insulatedShutters = false;
+        normalizeOneWindow(win);
+        applyShuttersPills();
+        rememberWindowDefaults(win);
+        saveProperty();
+      });
+    }
+    if (insulatedPill) {
+      insulatedPill.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (win.shutters !== true) return;
+        win.insulatedShutters = !(win.insulatedShutters === true);
+        normalizeOneWindow(win);
+        applyShuttersPills();
         rememberWindowDefaults(win);
         saveProperty();
       });
@@ -5536,6 +5590,7 @@
     { key: "gap", label: "Gap" },
     { key: "width", label: "Width" },
     { key: "height", label: "Height" },
+    { key: "shutters", label: "Shutters" },
   ];
 
   function buildWindowScheduleRows() {
@@ -5551,6 +5606,9 @@
       gap: w.gap || "",
       width: w.width || "",
       height: w.height || "",
+      shutters: w.shutters === true
+        ? (w.insulatedShutters === true ? "Insulated" : "Yes")
+        : "",
     }));
   }
 
@@ -6033,7 +6091,9 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
       const tableW = tableRight - tableLeft;
       // Weights for: No. | Window | Roof | Type | Age |
       //              Orientation | Frame | Gap | Width | Height.
-      const colWeights = [0.6, 1.4, 0.7, 1.1, 1.3, 1.6, 1.2, 1.2, 1.4, 1.4];
+      // No., Window, Roof, Type, Age, Orientation, Frame, Gap,
+      // Width, Height, Shutters.
+      const colWeights = [0.6, 1.3, 0.7, 1.0, 1.2, 1.5, 1.1, 1.0, 1.2, 1.2, 1.2];
       const totalWeight = colWeights.reduce((a, b) => a + b, 0);
       const colWidths = colWeights.map((w) => (w / totalWeight) * tableW);
       const colX = [tableLeft];
