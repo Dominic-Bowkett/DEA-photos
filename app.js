@@ -2351,11 +2351,54 @@
     updateGroupCount(group);
   }
 
-  // Per-section help blurbs — currently placeholders. Add entries as the
-  // copy is provided; falls back to a generic "coming soon" message.
+  // Per-section help blurbs surfaced under each category card's
+  // header. Falls back to a generic placeholder if a category isn't
+  // listed here.
   const SECTION_HELP = {
-    // "Floorplan": "...",
-    // "External Elevations": "...",
+    "External Elevations":
+      "All elevations appropriate to the detachment of the property. Elevation photos must be comprehensive enough to show the dwelling being assessed from its highest to lowest extent (a photo with the front door open is a good idea as it serves to prove that you had access to the property on the day of the assessment, just in case there are queries later).",
+    "Wall Construction":
+      "Evidence of build type, wall thickness measurements, retro-fitted insulation (such as cavity fill drill holes or borescope investigations).",
+    "Roof Construction":
+      "Selections of all roof constructions selected for the building.",
+    "Loft Space Access":
+      "Evidence of access to the loft space or lack of access (as much as is possible).",
+    "Loft Insulation":
+      "Loft Insulation which gives evidence of the depth of insulation and the overall insulation coverage within the loft. Where different areas of the building have assessable loft insulation, the evidence must indicate which area of the building each photograph relates to.",
+    "Roof Rooms":
+      "Evidence that supports the selection of a roof room including fixed access such that one can walk down facing forwards. Include evidence of insulation where applicable, or evidence showing no access to insulation where applicable.",
+    "Primary Heating System":
+      "Evidence clearly showing the primary heating system (e.g. boiler showing any associated key features such as a condensate pipe or label indicating the boiler model if using PCDF).",
+    "Heating System Controls":
+      "All relevant thermostatic and/or timed controls appropriate to the primary heating system(s) such as a programmer, thermostat and TRVs.",
+    "Secondary Heating System":
+      "Evidence of any secondary heating. Secondary heating is secondary to the mains heating system and does not need to be in a habitable room to be included. Follow the conventions on secondary heating.",
+    "Hot Water Cylinder":
+      "Hot water cylinder — including evidence of insulation type and depth. We must have a picture of a thermostat where possible; if a cylinder stat is assumed this should be documented in your site notes.",
+    "Openings":
+      "Windows, doors, draught proofing, chimneys (ensuring photos are taken up the chimney where possible) etc.",
+    "Light Fittings":
+      "We must have evidence of low energy lamps within the building if they are included in the assessment (an example or selection is acceptable, you do not need to photograph every light fitting). Same for Incandescent and/or CFL.",
+    "Ventilation":
+      "Photos of all ventilation types, extract fans, flues etc.",
+    "Corridor / Stairwell":
+      "With flats, evidence should show a corridor or stairwell. Evidence should show if heated or unheated.",
+    "Shower / Bath":
+      "Include a photo of each bath and/or shower type. Also confirm no presence of either with a photo of the bathroom.",
+    "Electricity Meter":
+      "Electricity Meter — indicating dual or single tariff. If no access, then site notes are vital to indicate the selection of electricity tariff. Only use 'unknown' if there is no access to the meter, no documentary evidence such as a utility bill AND there are no fixed dual electricity appliances in the dwelling. If there is a dual or twin HWC and/or fixed storage heaters it is advised to enter 'unknown' if you cannot access or locate the meter, and allow the software to default.",
+    "Gas Meter":
+      "Include if present and accessible.",
+    "Heating Fuel":
+      "Evidence of fuel type selected for primary and secondary heating systems e.g. LPG cylinder, LPG tank, oil tank, mains gas meter, solid fuel store, utility bill.",
+    "Conservatory":
+      "Photographic evidence supporting the selection of a conservatory i.e. glazing coverage of room and exposed perimeter and its inclusion in the assessment i.e. whether it is separated or not.",
+    "Renewables":
+      "Evidence to support the selection of renewable or low-carbon technologies — solar, PV, WWHRS, FGHRS, wind turbines, etc.",
+    "Additional Evidence":
+      "Any other key feature of the building or limitation whose presence or absence may be reasonably considered likely to affect the SAP rating, or which would be required to support any claim made in the report that could be subsequently queried or be the subject of a complaint.",
+    "Floorplan":
+      "Optional — add your floor plan here if you wish.",
   };
 
   // -------------------- Rooms rendering --------------------
