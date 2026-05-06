@@ -4580,8 +4580,10 @@
       );
     }
     const emptyNonNa = (state.property.groups || []).filter((g) => {
-      const name = (g.name || "").trim().toLowerCase();
-      if (name === "untagged") return false;
+      // No Category Defined is the holding pen — its emptiness is a
+      // good thing (means everything is filed) and is reported via
+      // the untaggedCount path above. Skip it here either way.
+      if (isUntaggedName(g.name)) return false;
       if (g.naMarked === true) return false;
       return (g.photoIds || []).length === 0;
     });
