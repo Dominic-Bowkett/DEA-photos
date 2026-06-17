@@ -6102,8 +6102,11 @@ td:empty::before,td.empty{color:#94a3b8;content:"—"}
 
         cursorY += drawH + capH + 18 + extraCap;
 
+        // One photo per page: always start a fresh page for the next
+        // entry in this section. The "(cont.)" header keeps the
+        // section's name visible at the top of every page.
         const isLast = entry === iterator[iterator.length - 1];
-        if (!isLast && cursorY + 180 > pageH - margin) {
+        if (!isLast) {
           doc.addPage();
           doc.setFont("helvetica", "bold");
           doc.setFontSize(12);
